@@ -13,12 +13,12 @@ matr: src/matr.c
 
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 run: matr gen serial
+	rm data_*
 	# Generate matrix
 	bin/gen $(SIZE)
-	# Calculate output with parallel program
-	bin/matr $(NUM_TH) $(SIZE)
-	# Verify output
-	bin/serial
+	# Calculate output with parallel program and verify output
+	bin/matr $(NUM_TH) $(SIZE) && bin/serial
+	
 
 clean:
 	rm -rf bin/*
