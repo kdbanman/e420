@@ -9,12 +9,14 @@ serial: src/serialtester.c
 	gcc -Wall -Wextra -o bin/serial src/serialtester.c
 
 matr: src/matr.c
-	gcc -Wall -Wextra -lpthread -o bin/matr src/matr.c
+	gcc -Wall -Wextra -lm -lpthread -o bin/matr src/matr.c
 
+# vary params with, for example, make run NUM_TH="4" SIZE="1024"
 run: matr gen
 	# Generate matrix
 	bin/gen $(SIZE)
-	bin/matr $(NUM_TH)
+	# Calculate output
+	bin/matr $(NUM_TH) $(SIZE)
 
 clean:
 	rm -rf bin/*

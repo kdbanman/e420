@@ -1,70 +1,198 @@
 /* File:  
- *    pth_hello.c
+ *    matr.c
  *
  * Purpose:
- *    Illustrate basic use of pthreads:  create some threads,
- *    each of which prints a message.
+ *    Using the desired number of threads, compute the product of two matrices
+ *    from file "data_input" into file "data_output".
  *
  * Input:
  *    none
  * Output:
  *    message from each thread
  *
- * Compile:  gcc -g -Wall -o pth_hello pth_hello.c -lpthread
- * Usage:    ./pth_hello <thread_count>
- *
- * IPP:   Section 4.2 (p. 153 and ff.)
+ * Compile:  gcc -g -Wall -Wextra -o matr matr.c -lpthread -lm
+ * Usage:    ./matr <thread_count> <matrix_size>
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h> 
+#include <math.h>
 
-const int MAX_THREADS = 64;
+const int MAX_THREADS = 4096;
+const int MAX_SIZE = 100000;
 
-/* Global variable:  accessible to all threads */
+/* Global variables:  accessible to all threads */
+
 int thread_count;  
+int *A, *B, *C; /* Input and output matrices. */
+int size; /* Matrix size. */
+int part_size; /* Partition square size for each thread. */
 
-void Usage(char* prog_name);
-void *Hello(void* rank);  /* Thread function */
+/* Method declarations. */
+
+void usage(char* prog_name);
+void *thread_func(void* rank);  /* Thread function */
+int is_perf_square(int x);
+int load_input(int *A, int *B, int *n);
+int save_output(int *C, int *n);
 
 /*--------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
-   long       thread;  /* Use long in case of a 64-bit system */
-   pthread_t* thread_handles; 
+  long       thread;  /* Use long in case of a 64-bit system */
+  pthread_t* thread_handles; 
 
-   /* Get number of threads from command line */
-   if (argc != 2) Usage(argv[0]);
-   thread_count = strtol(argv[1], NULL, 10);  
-   if (thread_count <= 0 || thread_count > MAX_THREADS) Usage(argv[0]);
+  /* Get number of threads and matrix size from command line */
+  if (argc != 3) usage(argv[0]);
 
-   thread_handles = malloc (thread_count*sizeof(pthread_t)); 
+  thread_count = strtol(argv[1], NULL, 10);  
+  if (thread_count <= 0 || thread_count > MAX_THREADS) usage(argv[0]);
 
-   for (thread = 0; thread < thread_count; thread++)  
-      pthread_create(&thread_handles[thread], NULL,
-          Hello, (void*) thread);  
+  size = atoi(argv[2]);
+  if (size <= 1 || size > MAX_THREADS) usage(argv[0]);
 
-   printf("Hello from the main thread\n");
+  /* TODO Ensure number of threads evenly divides the of matrix size.
+   * Number of threads must also be a perfect square. */
+  if (!is_perf_square(thread_count) || (size * size) % thread_count != 0)
+    usage(argv[0]);
 
-   for (thread = 0; thread < thread_count; thread++) 
-      pthread_join(thread_handles[thread], NULL); 
+  /* TODO Calculate partition size for each thread. */
 
-   free(thread_handles);
-   return 0;
+  /* Initialize matrices */
+  A = malloc(size * size * sizeof(int));
+  B = malloc(size * size * sizeof(int));
+  C = malloc(size * size * sizeof(int));
+
+  /* TODO Load contents of input file into input matrices. */
+
+  /* Initialize threads */
+  thread_handles = malloc (thread_count*sizeof(pthread_t)); 
+
+  /* Send work to threads. */
+  for (thread = 0; thread < thread_count; thread++)  
+    pthread_create(&thread_handles[thread], NULL, thread_func, (void*) thread);  
+
+  printf("All threads dispatched.\n");
+
+  /* Synchronize threads. */
+  for (thread = 0; thread < thread_count; thread++) 
+    pthread_join(thread_handles[thread], NULL); 
+
+  /* TODO Save output */
+
+  /* Clean up memory. */
+  free(thread_handles);
+  free(A);
+  free(B);
+  free(C);
+
+  return 0;
 }  /* main */
 
 /*-------------------------------------------------------------------*/
-void *Hello(void* rank) {
+void *thread_func(void* rank) {
    long my_rank = (long) rank;  /* Use long in case of 64-bit system */ 
 
    printf("Hello from thread %ld of %d\n", my_rank, thread_count);
 
    return NULL;
-}  /* Hello */
+}  /* thread_func */
 
 /*-------------------------------------------------------------------*/
-void Usage(char* prog_name) {
-   fprintf(stderr, "usage: %s <number of threads>\n", prog_name);
-   fprintf(stderr, "0 < number of threads <= %d\n", MAX_THREADS);
+void usage(char* prog_name) {
+   fprintf(stderr, "usage: %s <number of threads> <matrix size>\n", prog_name);
+   fprintf(stderr, "  0 < number of threads <= %d\n", MAX_THREADS);
+   fprintf(stderr, "  0 < matrix size <= %d\n", MAX_SIZE);
+   fprintf(stderr, "  number of threads must be a perfect square\n");
+   fprintf(stderr, "  number of threads must evenly divide square of size\n");
    exit(0);
-}  /* Usage */
+}  /* usage */
 
+/*-------------------------------------------------------------------*/
+int is_perf_square(int x) {
+  int root = (int) sqrt((double) x);
+  return root * root == x;
+}
+
+/*-------------------------------------------------------------------*/
+int load_input(int *A, int *B, int *n)
+{
+  /*
+    The function to load the data generated by matrixgen.c
+
+    The input are the pointer to the two matrices and the pointer 
+    to the variable storing the matrix size.
+    MAKE SURE that you declared two array with the exact SAME 
+    size of the matrix you generated with matrixgen.c
+    
+    Note that the input is of type int *. If you declared arrays 
+    with type int *[], you need to CONVERT to type int*. For example
+    if you declared some array like
+    int A_[16][16],B_[16][16];
+    int n_;
+    To call the function, you can use
+    load_input(*A_, *B_, &n_);
+
+    Also note that the third argument is a pointer!
+  */
+
+        FILE* ip;
+        int i,j;
+        if ((ip=fopen("data_input","r"))==NULL)
+        {
+                printf("error opening the input data.\n");
+                return 1;
+        }
+        fscanf(ip,"%d\n",n);
+        for (i=0;i<*n;i++)
+                for (j=0;j<*n;j++)
+                        fscanf(ip,"%d\t",A+*n*i+j);     
+        for (i=0;i<*n;i++)
+                for (j=0;j<*n;j++)
+                        fscanf(ip,"%d\t",B+*n*i+j);
+  fclose(ip);     
+        return 0;
+}
+
+/*-------------------------------------------------------------------*/
+int save_output(int *C, int *n)
+{  
+  /*
+    The function to save the result matrix to a file.
+
+    The input are the pointer to the result matrix and the pointer 
+    to the variable storing the matrix size.
+    MAKE SURE that you declared the result array with the exact SAME 
+    size of the matrix you generated with matrixgen.c
+    
+    Note that the input is of type int *. If you declared arrays 
+    with type int *[], you need to CONVERT to type int*. For example
+    if you declared some array like
+    int C_[16][16];
+    int n_;
+    To call the function, you can use
+    load_input(*C_, &n_);
+
+    Also note that the second argument is a pointer!
+
+    The output will be stored at the file 
+    ./data_output
+  */
+  FILE* op;
+  int i,j;
+  if ((op=fopen("data_output","w"))==NULL)
+  {
+    printf("Error opening the output file.\n");
+    return 1;
+  }
+  fprintf(op,"%d\n\n",*n);
+  for (i=0;i<*n;i++)
+  {
+    for (j=0;j<*n;j++)
+      fprintf(op,"%d\t",C[*n*i+j]);
+    fprintf(op,"\n");
+  }
+  fclose(op);
+  return 0;  
+}
+
+/*-------------------------------------------------------------------*/
