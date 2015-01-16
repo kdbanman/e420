@@ -48,7 +48,6 @@ int main(int argc, char* argv[])
 {
   long       thread;
   pthread_t* thread_handles; 
-  int        part_size;
 
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
@@ -61,11 +60,19 @@ int main(int argc, char* argv[])
 
   /* Ensure number of threads evenly divides the of matrix size.
    * Number of threads must also be a perfect square. */
-  if (!is_perf_square(thread_count) || (size * size) % thread_count != 0)
+  if (!is_perf_square(thread_count) || (size * size) % thread_count != 0) {
+    fprintf(stderr, "ERR: Thread count must be a perfect square AND\n");
+    fprintf(stderr, "     thread count must evenly divide square of size\n");
     usage(argv[0]);
+  }
 
   /* Calculate partition size for each thread. */
   part_size = size / (int) sqrt(thread_count);
+
+  if (part_size * part_size * thread_count != size * size) {
+    fprintf(stderr, "ERR: Partition size miscalculated as %d.\n", part_size);
+    usage(argv[0]);
+  }
 
   /* Initialize matrices */
   A = malloc(size * size * sizeof(int));
@@ -80,25 +87,22 @@ int main(int argc, char* argv[])
 
   /* Send work to threads. */
   for (thread = 0; thread < thread_count; thread++)  
-    pthread_create(&thread_handles[thread], NULL, thread_func, (void*) thread);  
+    pthread_create(&thread_handles[thread], NULL, thread_func, (void*) thread);
 
-  printf("All threads dispatched.\n");
 
   /* Synchronize threads. */
   for (thread = 0; thread < thread_count; thread++) 
     pthread_join(thread_handles[thread], NULL); 
 
-  /* DEBUG */
-  partition_mult(A, B, C, 0, 0, size);
-
   /* Save output */
   save_output(C, &size);
 
-  /* Clean up memory. */
+  /* Clean up memory. TODO this is actually fucking pretend...
   free(thread_handles);
   free(A);
   free(B);
   free(C);
+  */
 
   return 0;
 }  /* main */
@@ -106,13 +110,17 @@ int main(int argc, char* argv[])
 /*-------------------------------------------------------------------*/
 void *thread_func(void* rank)
 {
-  long my_rank = (long) rank;  /* Use long in case of 64-bit system */ 
+  long my_rank;
+  int i, j;
 
-  /* TODO Calculate coordinate from rank, matrix size, and thread count. */
+  my_rank = (long) rank;
 
-  /* TODO Call partition multiplier using global matrices and partition size. */
+  /* Calculate coordinate from rank, matrix size, and thread count. */
+  i = my_rank * part_size / size * part_size;
+  j = (my_rank * part_size) % size;
 
-  printf("Hello from thread %ld of %d\n", my_rank, thread_count);
+  /* Call partition multiplier using global matrices and partition size. */
+  partition_mult(A, B, C, i, j, part_size);
 
   return NULL;
 }  /* thread_func */
@@ -242,8 +250,6 @@ void usage(char* prog_name)
    fprintf(stderr, "usage: %s <number of threads> <matrix size>\n", prog_name);
    fprintf(stderr, "  0 < number of threads <= %d\n", MAX_THREADS);
    fprintf(stderr, "  0 < matrix size <= %d\n", MAX_SIZE);
-   fprintf(stderr, "  number of threads must be a perfect square\n");
-   fprintf(stderr, "  number of threads must evenly divide square of size\n");
    exit(0);
 }  /* usage */
 
