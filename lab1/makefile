@@ -1,6 +1,6 @@
 # Default number of threads and the matrix dimension
-NUM_TH="16"
-SIZE="32"
+NUM_TH="4"
+SIZE="8"
 
 gen: src/matrixgen.c
 	gcc -Wall -Wextra -o bin/gen src/matrixgen.c
@@ -11,12 +11,14 @@ serial: src/serialtester.c
 matr: src/matr.c
 	gcc -Wall -Wextra -lm -lpthread -o bin/matr src/matr.c
 
-# vary params with, for example, make run NUM_TH="4" SIZE="1024"
-run: matr gen
+# vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
+run: matr gen serial
 	# Generate matrix
 	bin/gen $(SIZE)
-	# Calculate output
+	# Calculate output with parallel program
 	bin/matr $(NUM_TH) $(SIZE)
+	# Verify output
+	bin/serial
 
 clean:
 	rm -rf bin/*

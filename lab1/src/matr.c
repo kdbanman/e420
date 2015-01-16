@@ -1,14 +1,18 @@
-/* File:  
+/* 
+ * Kirby Banman
+ * ECE 420 Lab 1
+ * 15 Jan 2015
+ *
+ * File:  
  *    matr.c
  *
  * Purpose:
  *    Using the desired number of threads, compute the product of two matrices
- *    from file "data_input" into file "data_output".
- *
+ *    
  * Input:
- *    none
+ *    "data_input" file, 2 command line parameters (see Usage below)
  * Output:
- *    message from each thread
+ *    "data_output" file
  *
  * Compile:  gcc -g -Wall -Wextra -o matr matr.c -lpthread -lm
  * Usage:    ./matr <thread_count> <matrix_size>
@@ -30,16 +34,21 @@ int part_size; /* Partition square size for each thread. */
 
 /* Method declarations. */
 
-void usage(char* prog_name);
-void *thread_func(void* rank);  /* Thread function */
+void partition_mult(int *A, int *B, int *C, int i, int j, int p_size);
+int dot_product(int *A, int *B, int row, int col);
+int coord(int i, int j);
 int is_perf_square(int x);
+void *thread_func(void* rank);
 int load_input(int *A, int *B, int *n);
 int save_output(int *C, int *n);
+void usage(char* prog_name);
 
 /*--------------------------------------------------------------------*/
-int main(int argc, char* argv[]) {
-  long       thread;  /* Use long in case of a 64-bit system */
+int main(int argc, char* argv[])
+{
+  long       thread;
   pthread_t* thread_handles; 
+  int        part_size;
 
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
@@ -50,19 +59,21 @@ int main(int argc, char* argv[]) {
   size = atoi(argv[2]);
   if (size <= 1 || size > MAX_THREADS) usage(argv[0]);
 
-  /* TODO Ensure number of threads evenly divides the of matrix size.
+  /* Ensure number of threads evenly divides the of matrix size.
    * Number of threads must also be a perfect square. */
   if (!is_perf_square(thread_count) || (size * size) % thread_count != 0)
     usage(argv[0]);
 
-  /* TODO Calculate partition size for each thread. */
+  /* Calculate partition size for each thread. */
+  part_size = size / (int) sqrt(thread_count);
 
   /* Initialize matrices */
   A = malloc(size * size * sizeof(int));
   B = malloc(size * size * sizeof(int));
   C = malloc(size * size * sizeof(int));
 
-  /* TODO Load contents of input file into input matrices. */
+  /* Load contents of input file into input matrices. */
+  load_input(A, B, &size);
 
   /* Initialize threads */
   thread_handles = malloc (thread_count*sizeof(pthread_t)); 
@@ -77,7 +88,11 @@ int main(int argc, char* argv[]) {
   for (thread = 0; thread < thread_count; thread++) 
     pthread_join(thread_handles[thread], NULL); 
 
-  /* TODO Save output */
+  /* DEBUG */
+  partition_mult(A, B, C, 0, 0, size);
+
+  /* Save output */
+  save_output(C, &size);
 
   /* Clean up memory. */
   free(thread_handles);
@@ -89,23 +104,49 @@ int main(int argc, char* argv[]) {
 }  /* main */
 
 /*-------------------------------------------------------------------*/
-void *thread_func(void* rank) {
-   long my_rank = (long) rank;  /* Use long in case of 64-bit system */ 
+void *thread_func(void* rank)
+{
+  long my_rank = (long) rank;  /* Use long in case of 64-bit system */ 
 
-   printf("Hello from thread %ld of %d\n", my_rank, thread_count);
+  /* TODO Calculate coordinate from rank, matrix size, and thread count. */
 
-   return NULL;
+  /* TODO Call partition multiplier using global matrices and partition size. */
+
+  printf("Hello from thread %ld of %d\n", my_rank, thread_count);
+
+  return NULL;
 }  /* thread_func */
 
 /*-------------------------------------------------------------------*/
-void usage(char* prog_name) {
-   fprintf(stderr, "usage: %s <number of threads> <matrix size>\n", prog_name);
-   fprintf(stderr, "  0 < number of threads <= %d\n", MAX_THREADS);
-   fprintf(stderr, "  0 < matrix size <= %d\n", MAX_SIZE);
-   fprintf(stderr, "  number of threads must be a perfect square\n");
-   fprintf(stderr, "  number of threads must evenly divide square of size\n");
-   exit(0);
-}  /* usage */
+void partition_mult(int *A, int *B, int *C, int i, int j, int p_size)
+{
+  int a, b;
+
+  for (a = i; a < i + p_size; a++) {
+    for (b = j; b < j + p_size; b++) {
+      C[coord(a,b)] = dot_product(A, B, a, b);
+    }
+  }
+}
+
+/*-------------------------------------------------------------------*/
+int dot_product(int *A, int *B, int row, int col)
+{
+  int i, sum;
+
+  sum = 0;
+  for (i = 0; i < size; i++) {
+    sum += A[coord(row, i)] * B[coord(i, col)];
+  }
+
+  return sum;
+}
+
+/*-------------------------------------------------------------------*/
+int coord(int i, int j)
+{
+  return i * size + j;
+}
 
 /*-------------------------------------------------------------------*/
 int is_perf_square(int x) {
@@ -196,3 +237,13 @@ int save_output(int *C, int *n)
 }
 
 /*-------------------------------------------------------------------*/
+void usage(char* prog_name)
+{
+   fprintf(stderr, "usage: %s <number of threads> <matrix size>\n", prog_name);
+   fprintf(stderr, "  0 < number of threads <= %d\n", MAX_THREADS);
+   fprintf(stderr, "  0 < matrix size <= %d\n", MAX_SIZE);
+   fprintf(stderr, "  number of threads must be a perfect square\n");
+   fprintf(stderr, "  number of threads must evenly divide square of size\n");
+   exit(0);
+}  /* usage */
+
