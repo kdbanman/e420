@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   if (thread_count <= 0 || thread_count > MAX_THREADS) usage(argv[0]);
 
   size = atoi(argv[2]);
-  if (size <= 1 || size > MAX_THREADS) usage(argv[0]);
+  if (size <= 0 || size > MAX_THREADS) usage(argv[0]);
 
   /* Ensure number of threads evenly divides the of matrix size.
    * Number of threads must also be a perfect square. */

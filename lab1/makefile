@@ -16,8 +16,10 @@ run: matr gen serial
 	rm data_*
 	# Generate matrix
 	bin/gen $(SIZE)
-	# Calculate output with parallel program and verify output
-	bin/matr $(NUM_TH) $(SIZE) && bin/serial
+	# Calculate output with parallel program
+	bin/matr $(NUM_TH) $(SIZE)
+	# Verify output
+	bin/serial
 	
 
 clean:
