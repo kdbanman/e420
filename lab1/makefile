@@ -18,14 +18,22 @@ run: matr gen serial
 	bin/gen $(SIZE)
 	# Calculate output with parallel program
 	bin/matr $(NUM_TH) $(SIZE)
+	
+# vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
+test_run: matr gen serial
+	rm data_*
+	# Generate matrix
+	bin/gen $(SIZE)
+	# Calculate output with parallel program
+	bin/matr $(NUM_TH) $(SIZE)
 	# Verify output
 	bin/serial
-	
+
+# Explicitly chosen test cases are run by the parallel and serial versions.
+# The outputs are compared for each matrix.
+# TODO test: matr serial
 
 clean:
 	rm -rf bin/*
 	rm data_*
 
-# Explicitly chosen test cases are run by the parallel and serial versions.
-# The outputs are compared for each matrix.
-# TODO test: matr serial
