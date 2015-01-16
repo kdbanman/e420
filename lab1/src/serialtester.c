@@ -15,7 +15,7 @@ program.
 
 int A[M][M], B[M][M], C[M][M];
 
-int main (int argc, char* argv[])
+int main ()
 {
 	int n;
 	int i,j,k;
