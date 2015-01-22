@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <pthread.h> 
 #include <math.h>
+#include "timer.h"
 
 const int MAX_THREADS = 4096;
 const int MAX_SIZE = 100000;
@@ -48,6 +49,7 @@ int main(int argc, char* argv[])
 {
   long       thread;
   pthread_t* thread_handles; 
+  double time_start, time_end;
 
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
@@ -85,6 +87,9 @@ int main(int argc, char* argv[])
   /* Initialize threads */
   thread_handles = malloc (thread_count*sizeof(pthread_t)); 
 
+  /* Record start time */
+  GET_TIME(time_start);
+
   /* Send work to threads. */
   for (thread = 0; thread < thread_count; thread++)  
     pthread_create(&thread_handles[thread], NULL, thread_func, (void*) thread);
@@ -93,6 +98,14 @@ int main(int argc, char* argv[])
   /* Synchronize threads. */
   for (thread = 0; thread < thread_count; thread++) 
     pthread_join(thread_handles[thread], NULL); 
+
+  /* Record end time and report delta. */
+  GET_TIME(time_end);
+  printf("Elapsed time for %d threads and %dx%d matrices: %5.3fms\n",
+            thread_count,
+            size,
+            size,
+            time_end - time_start);
 
   /* Save output */
   save_output(C, &size);

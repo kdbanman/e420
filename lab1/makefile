@@ -8,12 +8,11 @@ gen: src/matrixgen.c
 serial: src/serialtester.c
 	gcc -Wall -Wextra -o bin/serial src/serialtester.c
 
-matr: src/matr.c
+matr: src/matr.c src/timer.h
 	gcc -Wall -Wextra -lm -lpthread -o bin/matr src/matr.c
 
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 run: matr gen serial
-	rm data_*
 	# Generate matrix
 	bin/gen $(SIZE)
 	# Calculate output with parallel program
@@ -21,7 +20,6 @@ run: matr gen serial
 	
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 test_run: matr gen serial
-	rm data_*
 	# Generate matrix
 	bin/gen $(SIZE)
 	# Calculate output with parallel program
