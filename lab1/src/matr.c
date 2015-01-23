@@ -101,11 +101,7 @@ int main(int argc, char* argv[])
 
   /* Record end time and report delta. */
   GET_TIME(time_end);
-  printf("Elapsed time for %d threads and %dx%d matrices: %5.3fms\n",
-            thread_count,
-            size,
-            size,
-            time_end - time_start);
+  printf("%5.3f\n", time_end - time_start);
 
   /* Save output */
   save_output(C, &size);
