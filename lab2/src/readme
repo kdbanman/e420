@@ -1,0 +1,10 @@
+2015 Jan.
+
+The scripts for Lab2. Here is a list for all the files:
+
+datagen.c	*code to generate the input data
+Lab2IO		functions for loading and saving data
+serialtester.c	*code to check the result
+timer.h		macro definition to mesure the time
+
+Note that you don't have to use the scripts without a "*". If you use your own IO functions, please make sure that the result is stored in proper format.
