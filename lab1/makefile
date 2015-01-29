@@ -1,3 +1,22 @@
+
+# Kirby Banman
+# ECE 420 Lab 1
+# 15 Jan 2015
+#
+# File:  
+#    makefile
+#
+# Purpose:
+#    compile, run, and test matr.c and all support programs
+#    
+# Usage:
+#    EX: make run
+#    EX: make run NUM_TH="16" SIZE="1024"
+#    EX: make test_run NUM_TH="16" SIZE="1024"
+#    EX: make test
+#    EX: make clean
+
+
 # Default number of threads and the matrix dimension
 NUM_TH="4"
 SIZE="8"
