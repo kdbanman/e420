@@ -9,7 +9,7 @@ Serial version implementation and varification program.
 
 int Loaddata(int* A, int n);
 
-int main (int argc, char* argv[])
+int main ()
 {
         int i,j,k,n,temp;
         int *dp;
