@@ -20,7 +20,7 @@
 
 # Default number of threads and the problem size
 NUM_TH="4"
-SIZE="8"
+SIZE="64"
 
 TESTS=$(wildcard test/*)
 
@@ -30,8 +30,8 @@ gen: src/datagen.c
 serial: src/serialtester.c
 	gcc -Wall -Wextra -o bin/serial src/serialtester.c
 
-fwarshall: src/fwarshall.c src/timer.h
-	gcc -Wall -Wextra -lm -lpthread -o bin/fwarshall src/fwarshall.c
+fwarshall: src/fwarshall.c src/timer.h src/barrier.c
+	gcc -Wall -Wextra -lpthread -o bin/fwarshall src/fwarshall.c
 
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 run: fwarshall gen serial

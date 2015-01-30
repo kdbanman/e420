@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <semaphore.h>
+#include "barrier.c"
 #include "timer.h"
 
 const int MAX_THREADS = 4096;
@@ -29,9 +29,8 @@ const int MAX_SIZE = 1000000;
 
 /* Semaphore thread barrier data */
 
-int blocked_thread_count;
-sem_t count_protector;
-sem_t barrier;
+barrier *read_barrier;
+barrier *write_barrier;
 
 /* Global variables:  accessible to all threads */
 
@@ -88,22 +87,28 @@ int main(int argc, char* argv[])
   thread_handles = (pthread_t *) malloc (thread_count*sizeof(pthread_t)); 
   thread_params = (block_param *) malloc (thread_count*sizeof(block_param)); 
 
+  /* Allocate work blocks to first thread. */
+  thread_params[0].start = 0;
+  thread_params[0].length = size*size / thread_count;
   /* Allocate work blocks to all but the final thread. */
-  for (thread = 0; thread < thread_count - 1; thread++) {
-    thread_params[thread].start = thread * size*size / thread_count;
+  for (thread = 1; thread < thread_count - 1; thread++) {
+    thread_params[thread].start = thread_params[thread-1].start +
+                                  thread_params[thread-1].length;
     thread_params[thread].length = size*size / thread_count;
   }
   /* Allocate remaining work block to the final thread. */
-  thread_params[thread].start = thread * size*size / thread_count;
-  thread_params[thread].length = size*size - thread * size*size / thread_count;
+  thread_params[thread].start = thread_params[thread-1].start +
+                                thread_params[thread-1].length;
+  thread_params[thread].length = size*size - thread_params[thread].start;
 
   /* Set global iteration counter. */
   fw_k = 0;
 
-  /* Initialize semaphore barrier. */
-  blocked_thread_count = 0;
-  sem_init(&count_protector, 0, 1);
-  sem_init(&barrier, 0, 0);
+  /* Initialize barriers. */
+  read_barrier = (barrier *) malloc(sizeof(barrier));
+  write_barrier = (barrier *) malloc(sizeof(barrier));
+  barrier_init(read_barrier, thread_count);
+  barrier_init(write_barrier, thread_count);
 
   /* Record start time */
   GET_TIME(time_start);
@@ -126,23 +131,13 @@ int main(int argc, char* argv[])
             size,
             time_end - time_start);
 
-  /*
-   * DEBUG
-  int k;
-  for (k = 0; k < size; k++) {
-    floyd_warshall_iter(k, 0, size*size, size);
-
-    swap_block(tmp_matr, w_matr, 0, size*size);
-  }
-  */
-
   save_output(w_matr, size);
 
   /* Deallocate arrays and semaphore. */
   free(w_matr);
   free(tmp_matr);
-  sem_destroy(&count_protector);
-  sem_destroy(&barrier);
+  barrier_destroy(read_barrier);
+  barrier_destroy(write_barrier);
 
   return 0;
 } /* main */
@@ -151,40 +146,31 @@ int main(int argc, char* argv[])
 void *thread_func(void* param)
 {
   block_param * block;
-  int i;
 
   /* Get assigned work */
   block = (block_param *) param;
+
+  printf("%d:  %d to %d\n", block->length, block->start, block->start + block->length);
+  if (block->start + block->length == size*size) printf("END\n\n");
 
   /* Perform assigned work */
   while (fw_k < size) {
     floyd_warshall_iter(fw_k, block->start, block->length, size);
 
     /* Wait for all threads to finish iteration */
-    sem_wait(&count_protector);
-    if (blocked_thread_count < thread_count - 1) {
-      /* this is not the last thread to hit the barrier.  wait. */
-      blocked_thread_count++;
-      printf("hit barrier %d, %d blocked\n", fw_k, blocked_thread_count);
-      sem_post(&count_protector);
-      sem_wait(&barrier);
-    } else {
-      printf("releasing barrier %d\n", fw_k);
-      /* this is the last thread to hit the barrier.  incement the global
-       * iteration counter and release the others. */
-      blocked_thread_count = 0;
-      sem_post(&count_protector);
-
+    if (barrier_wait(write_barrier)) {
+      /* Final thread increments algorithm iteration counter. */
       fw_k++;
-      for (i = 0; i < thread_count - 1; i++) {
-        sem_post(&barrier);
-      }
     }
 
     /* Copy intermediate results to weight matrix. */
     swap_block(tmp_matr, w_matr, block->start, block->length);
+
+    /* Wait for write to finish before reading in next iteration. */
+    barrier_wait(read_barrier);
   }
 
+  return 0;
 } /* thread_func */
 
 /*--------------------------------------------------------------------*/
