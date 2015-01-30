@@ -150,9 +150,6 @@ void *thread_func(void* param)
   /* Get assigned work */
   block = (block_param *) param;
 
-  printf("%d:  %d to %d\n", block->length, block->start, block->start + block->length);
-  if (block->start + block->length == size*size) printf("END\n\n");
-
   /* Perform assigned work */
   while (fw_k < size) {
     floyd_warshall_iter(fw_k, block->start, block->length, size);
