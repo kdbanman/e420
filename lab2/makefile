@@ -33,12 +33,21 @@ serial: src/serialtester.c
 fwarshall: src/fwarshall.c src/timer.h src/barrier.c
 	gcc -Wall -Wextra -lpthread -o bin/fwarshall src/fwarshall.c
 
+fwarshall_async: src/fwarshall_async.c src/timer.h src/barrier.c
+	gcc -Wall -Wextra -lpthread -o bin/fwarshall_async src/fwarshall_async.c
+
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
-run: fwarshall gen serial
+run: fwarshall gen
 	# Generate matrix
 	bin/gen $(SIZE)
 	# Calculate output with parallel program
 	bin/fwarshall $(NUM_TH) $(SIZE)
+
+run_async: fwarshall_async gen
+	# Generate matrix
+	bin/gen $(SIZE)
+	# Calculate output with parallel program
+	bin/fwarshall_async $(NUM_TH) $(SIZE)
 	
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 test_run: fwarshall gen serial
@@ -46,6 +55,15 @@ test_run: fwarshall gen serial
 	bin/gen $(SIZE)
 	# Calculate output with parallel program
 	bin/fwarshall $(NUM_TH) $(SIZE)
+	# Verify output
+	bin/serial
+
+# vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
+test_run_async: fwarshall_async gen serial
+	# Generate matrix
+	bin/gen $(SIZE)
+	# Calculate output with parallel program
+	bin/fwarshall_async $(NUM_TH) $(SIZE)
 	# Verify output
 	bin/serial
 
