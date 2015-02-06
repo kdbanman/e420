@@ -13,7 +13,7 @@
 # Usage:
 #    bash experiment_async.sh
 
-sizes=( 50 50 50 50 50 1000 1000 1000 1000 1000 )
+sizes=( 50 50 50 50 50 500 500 500 500 500 )
 
 make fwarshall_async
 make gen

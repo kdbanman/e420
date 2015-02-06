@@ -13,7 +13,7 @@
 # Usage:
 #    bash experiment.sh
 
-sizes=( 50 50 50 50 50 1000 1000 1000 1000 1000 )
+sizes=( 50 50 50 50 50 500 500 500 500 500 )
 
 make fwarshall
 make gen
@@ -25,6 +25,6 @@ do
   echo "<thread count>\t<runtime>"
   for th_count in {1..50}
   do
-    bin/fwarshall $th_count $size | sed -E 's/(Elapsed time for )|( threads and [0-9]* cities:)|(ms)//g' | sed 's/ /\t/g'
+    bin/fwarshall $th_count $size | sed -E 's/(Elapsed time for )|( threads and [0-9]* cities:)|(ms)//g' | sed 's/[0-9]* //g'
   done
 done
