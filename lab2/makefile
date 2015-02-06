@@ -67,12 +67,6 @@ test_run_async: fwarshall_async gen serial
 	# Verify output
 	bin/serial
 
-# Explicitly chosen test cases are run by the parallel and serial versions.
-# The outputs are compared for each matrix.
-# ALL TESTS RUN ASSUME PROBLEM SIZE 8.
-test: matr serial $(TESTS)
-	for test in test/*; do cp $$test data_input; bin/fwarshall 4 8; bin/serial; done
-	
 clean:
 	rm -rf bin/*
 	rm data_*

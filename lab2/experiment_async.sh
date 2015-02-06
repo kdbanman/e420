@@ -25,6 +25,6 @@ do
   echo "<thread count>\t<runtime>"
   for th_count in {1..50}
   do
-    bin/fwarshall_async $th_count $size | sed -E 's/(Elapsed time for )|( threads and [0-9]* cities:)|(ms)//g' | sed 's/ /\t/g'
+    bin/fwarshall_async $th_count $size | sed -E 's/(Elapsed time for )|( threads and [0-9]* cities:)|(ms)//g' | sed 's/[0-9]* //g'
   done
 done
