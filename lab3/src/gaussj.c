@@ -29,22 +29,34 @@
 const int MAX_THREADS = 4096;
 const int MAX_SIZE = 1000000;
 
-/* Global variables:  accessible to all threads */
-
-int thread_count;  
-float *sys_matr; /* Augmented matrix linear system. */
-int size; /* Matrix size (number of cities). */
+/* Global thread count */
+int     thread_count;  
 
 /* Method declarations. */
 
+void gaussj(float *sys_matr, float *solution, int size);
+
+void gauss_elim(float *sys_matr, int *index, int size);
+void pivot_row(int row, float *sys_matr, int *index, int size);
+void eliminate_beneath_row(int row, float *sys_matr, int *index, int size);
+float max_in_column(int row, float *sys_matr, int *index, int size);
+
+void jordan_elim(float *sys_matr, int *index, int size);
+
+void print_index(int *arr, int size);
+void print_floats(float *arr, int size);
 int load_input(int n, float* D, int mode);
 int save_output(int n, float* b);
+
 void usage(char* prog_name);
 
 /*--------------------------------------------------------------------*/
 int main(int argc, char* argv[])
 {
-  double      time_start, time_end;
+  double  time_start, time_end;
+  float   *sys_matr, /* Augmented matrix linear system. */
+          *solution; /* Solution vector. */
+  int     size; /* Matrix size (number of cities). */
 
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
@@ -56,9 +68,15 @@ int main(int argc, char* argv[])
   if (size <= 0 || size > MAX_THREADS) usage(argv[0]);
 
   /* Allocate and populate arrays. */
+  sys_matr = malloc(size * (size + 1) * sizeof(float));
+  solution = malloc( size * sizeof(float));
+
+  load_input(size, sys_matr, 0);
 
   /* Record start time */
   GET_TIME(time_start);
+
+  gaussj(sys_matr, solution, size);
 
   /* Record end time and report delta. */
   GET_TIME(time_end);
@@ -68,12 +86,160 @@ int main(int argc, char* argv[])
             time_end - time_start);
 
   /* Save output. */
+  save_output(size, solution);
 
   /* Deallocate arrays and semaphore. */
   free(sys_matr);
+  free(solution);
 
   return 0;
 } /* main */
+
+
+/*--------------------------------------------------------------------*/
+void gaussj(float *sys_matr, float *solution, int size)
+{
+  int     *index, /* Vector of row indices. */
+          i; /* Miscellaneous index counter. */
+
+  /* Handle trivial case. */
+  if (size == 1) {
+    solution[0] = sys_matr[1]/sys_matr[0];
+    return;
+  }
+
+  /* Allocate and populate index tracker. */
+  index=malloc(size * sizeof(int));
+  for (i = 0; i < size; i++)
+    index[i]=i;
+
+  {
+    gauss_elim(sys_matr, index, size);
+    jordan_elim(sys_matr, index, size);
+  }
+
+  /* Write solution from elimination results. */
+  for (i = 0; i < size; ++i)
+    solution[i] = sys_matr[index[i]*(size+1)+size] /
+                  sys_matr[index[i]*(size+1)+i];
+
+  /* Deallocate */
+  free(index);
+
+} /* gaussj */
+
+/*--------------------------------------------------------------------*/
+void gauss_elim(float *sys_matr, int *index, int size)
+{
+  int row; /* row iteration index */
+
+  for (row=0; row<size-1; ++row)
+  {
+    pivot_row(row, sys_matr, index, size);
+    eliminate_beneath_row(row, sys_matr, index, size);
+  }
+} /* gauss_elim */
+
+/*--------------------------------------------------------------------*/
+void pivot_row(int row, float *sys_matr, int *index, int size)
+{
+  int swap_candidate, swap_tmp;
+  
+  /* find maximum row for current column */
+  swap_candidate = max_in_column(row, sys_matr, index, size);
+
+  /* swap if different than current row */
+  if (swap_candidate != row)
+    {
+      swap_tmp = index[swap_candidate];
+      index[swap_candidate] = index[row];
+      index[row] = swap_tmp;
+    }
+} /* pivot_row */
+
+/*--------------------------------------------------------------------*/
+float max_in_column(int row, float *sys_matr, int *index, int size)
+{
+  float max;
+  int max_row, i;
+
+  max = 0;
+  for (i=row; i<size; ++i)
+    if (max<sys_matr[index[i]*(size+1)+row]*sys_matr[index[i]*(size+1)+row])
+    {
+      max=sys_matr[index[i]*(size+1)+row]*sys_matr[index[i]*(size+1)+row];
+      max_row=i;
+    }
+  return max_row;
+} /* max_in_column */
+
+/*--------------------------------------------------------------------*/
+void eliminate_beneath_row(int row, float *sys_matr, int *index, int size)
+{
+  int column, row_below;
+  float coeff;
+  
+  #pragma omp parallel for num_threads(thread_count) \
+    default(none) shared(sys_matr, size, index, row) \
+    private(column, row_below, coeff)
+  for (column=row+1; column<size; ++column)
+  {
+    coeff = sys_matr[index[column]*(size+1)+row] /
+            sys_matr[index[row]*(size+1)+row];
+    for (row_below=row; row_below<size+1; ++row_below)
+      sys_matr[index[column]*(size+1)+row_below]-=
+        sys_matr[index[row]*(size+1)+row_below]*coeff;
+  }    
+} /* eliminate_beneath_row */
+
+/*--------------------------------------------------------------------*/
+void jordan_elim(float *sys_matr, int *index, int size)
+{
+  int   column,
+        row_above;
+
+  float inverse_coeff; /* elimination multiplier fraction (per column) */
+
+  /* eliminate elements in each column (except first) right to left
+   * for each row above the columnar nonzero */
+
+  for (column=size-1; column>0; --column)
+  {
+    #pragma omp parallel for num_threads(thread_count) \
+      default(none) shared(sys_matr, size, index) \
+      private(row_above, inverse_coeff) \
+      firstprivate(column)
+    for (row_above=column-1; row_above>=0; --row_above )
+    {
+      inverse_coeff = sys_matr[index[row_above]*(size+1)+column] /
+             sys_matr[index[column]*(size+1)+column];
+
+      sys_matr[index[row_above]*(size+1)+column]-=
+        inverse_coeff*sys_matr[index[column]*(size+1)+column];
+
+      sys_matr[index[row_above]*(size+1)+size]-=
+        inverse_coeff*sys_matr[index[column]*(size+1)+size];
+    } 
+  }
+} /* jordan_elim */
+
+/*--------------------------------------------------------------------*/
+void print_index(int *arr, int size)
+{
+  int i;
+
+  for (i = 0; i < size; i++)
+    printf("%d\n", arr[i]);
+} /* print_idx */
+
+/*--------------------------------------------------------------------*/
+void print_floats(float *arr, int size)
+{
+  int i;
+
+  for (i = 0; i < size; i++)
+    printf("%f\n", arr[i]);
+} /* print_floats */
 
 /*--------------------------------------------------------------------*/
 int load_input(int n, float* D, int mode)
