@@ -28,10 +28,10 @@ gen: src/datagen.c
 	gcc -Wall -Wextra -o bin/gen src/datagen.c
 
 serial: src/serialtester.c
-	gcc -Wall -Wextra -lm -o bin/serial src/serialtester.c
+	gcc -Wall -Wextra -o bin/serial src/serialtester.c -lm 
 
 gaussj: src/gaussj.c src/timer.h
-	gcc -Wall -Wextra -lm -fopenmp -o bin/gaussj src/gaussj.c
+	gcc -Wall -Wextra -fopenmp -o bin/gaussj src/gaussj.c -lm
 
 # vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
 run: gaussj gen
