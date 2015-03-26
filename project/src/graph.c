@@ -11,3 +11,9 @@ int adj_init(adj_t *adj, double rank, int *nbrs, int nbr_count)
 
   err_check(memcpy(adj->nbrs, nbrs, sizeof(int) * nbr_count), "Copying adj_t nbrs");
 }
+
+int adj_destroy(adj_t *adj)
+{
+  err_check(free(adj->nbrs), "Deallocating adj_t nbrs");
+  err_check(free(adj), "Deallocating adj_t");
+}
