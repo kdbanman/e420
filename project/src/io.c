@@ -1,6 +1,6 @@
 #include <stdio.h>
-
 #include "graph.h"
+#include "io.h"
 
 int load_input(char *filename, adj_t **adjacency, int *node_count)
 {	
@@ -19,6 +19,7 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
     // ignore #comments and empty lines
     if (line[0] == '\0' || line[0] == '\n' || line[0] == '#')
       continue;
+    // TODO do more than print
     printf("%s", line);
   }
 

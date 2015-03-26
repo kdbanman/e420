@@ -52,9 +52,8 @@ int main(int argc, char* argv[])
 
   /* Record end time and report delta. */
   GET_TIME(time_end);
-  printf("Elapsed time for %d threads and %d size: %5.3fms\n",
-            thread_count,
-            size,
+  printf("Elapsed time for size %d: %5.3fms\n",
+            node_count,
             time_end - time_start);
 
   /* Save output. */

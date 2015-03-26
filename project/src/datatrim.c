@@ -22,22 +22,22 @@ int main (int argc, char* argv[])
 	int Ecount=0;
 	int i,j;
 	char* tempstore;
-	if (argc==1)
+	if (argc==3)
 	{
-		printf("Please assign the number of nodes.\n");
+		printf("Please assign the number of nodes and supply filenames (source then destination).\n");
 		return 1;
 	}
 	N=strtol(argv[1], NULL, 10);
 
-	if ((fp_ori=fopen("web-Stanford.txt","r"))==NULL)
+	if ((fp_ori=fopen(argv[2],"r"))==NULL)
 	{
-		printf("Fail to open a file. \n");
+		printf("Fail to open source file. \n");
 		return 2;
 	}
 	
-	if ((fp_dest=fopen("data_input","w"))==NULL)
+	if ((fp_dest=fopen(argv[3], "w"))==NULL)
 	{
-		printf("Fail to open a file. \n");
+		printf("Fail to open destination file. \n");
 		return 3;
 	}
 	

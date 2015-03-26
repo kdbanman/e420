@@ -1,55 +1,41 @@
 
 # Kirby Banman
 # ECE 420 Lab 3
-# 26 February 2015
+# April 2015
 #
 # File:  
 #    makefile
 #
 # Purpose:
 #    compile, run, and test lab program and all support programs
-#    
-# Usage:
-#    EX: make run
-#    EX: make run NUM_TH="16" SIZE="1024"
-#    EX: make test_run
-#    EX: make test_run NUM_TH="16" SIZE="1024"
-#    EX: make test
-#    EX: make clean
 
+SMALL_SIZE=5000
 
-# Default number of threads and the problem size
-NUM_TH="4"
-SIZE="128"
+TESTS = $(wildcard test/*)
 
-TESTS=$(wildcard test/*)
+DEPS = bin/util.o bin/io.o bin/graph.o
 
-gen: src/datagen.c
-	gcc -Wall -Wextra -o bin/gen src/datagen.c
+trim: src/datatrim.c
+	gcc -Wall -Wextra -o bin/trim src/datatrim.c
 
-serial: src/serialtester.c
-	gcc -Wall -Wextra -o bin/serial src/serialtester.c -lm 
+bin/util.o: src/util.c src/util.h
+	gcc -Wall -Wextra -o bin/util.o -c src/util.c
 
-gaussj: src/gaussj.c src/timer.h
-	gcc -Wall -Wextra -fopenmp -o bin/gaussj src/gaussj.c -lm
+bin/io.o: src/io.c src/io.h
+	gcc -Wall -Wextra -o bin/io.o -c src/io.c
 
-# vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
-run: gaussj gen
-	# Generate matrix
-	bin/gen $(SIZE)
-	# Calculate output with parallel program
-	bin/gaussj $(NUM_TH) $(SIZE)
+bin/graph.o: src/graph.c src/graph.h bin/util.o
+	gcc -Wall -Wextra -o bin/graph.o -c src/graph.c
 
-# vary parameters with, for example, make run NUM_TH="16" SIZE="1024"
-test_run: gaussj gen serial
-	# Generate matrix
-	bin/gen $(SIZE)
-	# Calculate output with parallel program
-	bin/gaussj $(NUM_TH) $(SIZE)
-	# Verify output
-	bin/serial
+rank: src/rank.c bin/util.o bin/io.o bin/graph.o
+	gcc -Wall -Wextra -o bin/rank src/rank.c $(DEPS)
+
+run_small: trim rank
+	# Generate smaller graph
+	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
+	# Calculate result
+	bin/rank data/small.txt data/small_out.txt
 
 clean:
 	rm -rf bin/*
-	rm data_*
 

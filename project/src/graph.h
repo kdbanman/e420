@@ -11,7 +11,7 @@ typedef struct adj_t {
   int *nbrs;
 } adj_t;
 
-int adj_init(adj_t *adj, double rank, int *nbrs, int nbr_count);
-int adj_destroy(adj_t *adj);
+void adj_init(adj_t *adj, double rank, int *nbrs, int nbr_count);
+void adj_destroy(adj_t *adj);
 
 #endif
