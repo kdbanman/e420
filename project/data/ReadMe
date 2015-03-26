@@ -1,0 +1,7 @@
+Here is the Web Graph data from http://snap.stanford.edu/data/web-Stanford.html
+
+The script datatrim.c will fetch a subset of the original data according to the command line parametre. The subset of data will only contain the nodes and the edges of which the nodes index is not greater than some value. Since the original data is quite sparse, the trimmed data might containing the nodes with index not continuous.
+
+Please try to test your program with properate amount of data. Your will be asked to mainly display the result in your report for a specific command line parametre. The number will be released according to our test about the machine capacity in the future. The main concern for the size of the data is to make your program running within a moderate amount of time for a relatively large data that the machine can handle.
+
+
