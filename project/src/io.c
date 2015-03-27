@@ -2,6 +2,11 @@
 #include "graph.h"
 #include "io.h"
 
+void debug(int level, char *print_str)
+{
+  if (debug_level >= level) printf(print_str);
+}
+
 int load_input(char *filename, adj_t **adjacency, int *node_count)
 {	
   FILE* fp;

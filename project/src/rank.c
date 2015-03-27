@@ -38,6 +38,8 @@ int main(int argc, char* argv[])
   adj_t   *adj; /* adjacency list for graph nodes. */
   int     node_count; /* size of adjacency list. */
 
+  debug_level = atoi(getenv("DEBUG"));
+  
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
   input_filename = argv[1];
