@@ -13,7 +13,7 @@ void debug(int level, const char *fmt, ...)
   }
 }
 
-int load_input(char *filename, adj_t **adjacency, int *node_count)
+int load_input(char *filename, graph_t *graph)
 {	
   FILE* fp;
   int edge_no;
@@ -27,22 +27,27 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
 
   // populate linked list by getting first edge, then iterating through
   // remaining edges assuming that previous edge exists.
-  debug(VERBOSE, "getting first\n");
+  debug(VERBOSE, "getting first edge\n");
   get_edge(&first_edge, fp);
   previous_edge = first_edge;
+  
   edge_no = 0;
+  
   debug(VERBOSE, "getting edge %d\n", edge_no);
   while (get_edge(&current_edge, fp)) {
     edge_no++;
+    
     debug(VERBOSE, "linking edge %d to %d\n", edge_no - 1, edge_no);
     edge_list_connect(&previous_edge, &current_edge);
     previous_edge = current_edge;
+    
     debug(VERBOSE, "getting edge %d\n", edge_no);
   }
   
   debug(LOW, "%d edges read into linked list.\n", edge_no);
   
-  //TODO count nodes and make adjacency list
+  // count nodes and make adjacency list
+  
 
   if (ferror(fp)) {
     fprintf(stderr, "Failure while reading from %s\n", filename);
@@ -52,7 +57,7 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
   return 0;
 }
 
-int save_ranks(char *filename,  adj_t *adjacency, int node_count)
+int save_ranks(char *filename,  graph_t *graph)
 {
   FILE* fp;
 

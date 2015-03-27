@@ -22,12 +22,34 @@ void edge_list_connect(edge_list_t *previous, edge_list_t *next);
  * Intended to be stored in an array as an adjacency list element.
  * Stores page rank and an array of neighbors.
  */
-typedef struct adj_t {
+typedef struct node_t {
+  int idx;
+  int nbr_count;
+  struct node_t *nbrs;
   double rank;
-  int *nbrs;
-} adj_t;
+} node_t;
 
-adj_t * adj_init(double rank, int *nbrs, int nbr_count);
-void adj_destroy(adj_t *adj);
+/* Allocates a node_t struct and sets members to idx, 0, and NULL */
+node_t * node_init(int idx);
+/* TODO Adds dst to src's adjacency list using realloc */
+void add_nbr(node_t *src, node_t *dst);
+void node_destroy(node_t *node);
+
+typedef struct graph_t {
+  int node_count;
+  int edge_count;
+  node_t *nodes;
+} graph_t;
+
+/* Allocates a graph struct to empty contents.
+ * TODO Malloc zero size so realloc works later?
+ */
+graph_t * graph_init();
+/* Reallocs node array if necessary, initializing additional elements to NULL.
+ * Init src/dst node if they don't exist. Increments node count accordingly.
+ * Add edge between src and dst using add_nbr(). (Does not check for existence.)
+ * Increment edge count. TODO
+ */
+void graph_add_edge(int src_id, int dst_id);
 
 #endif

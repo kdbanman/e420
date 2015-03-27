@@ -24,22 +24,21 @@ void edge_list_connect(edge_list_t *previous, edge_list_t *next)
   previous->next = next;
 }
 
-adj_t * adj_init(double rank, int *nbrs, int nbr_count)
+node_t * node_init(int idx)
 {
-  adj_t *adj = (adj_t *) malloc(sizeof(adj_t));
-  err_check(adj, "Allocating adj_t");
+  node_t *node = (node_t *) malloc(sizeof(node_t));
+  err_check(node, "Allocating node_t");
 
-  adj->rank = rank;
-  adj->nbrs = (int *) malloc(sizeof(int) * nbr_count);
-  err_check(adj->nbrs, "Allocating adj_t nbrs");
-
-  err_check(memcpy(adj->nbrs, nbrs, sizeof(int) * nbr_count), "Copying adj_t nbrs");
+  node->idx = idx;
+  node->nbr_count = 0;
+  node->nbrs = NULL;
+  node->rank = 0.0;
   
-  return adj;
+  return node;
 }
 
-void adj_destroy(adj_t *adj)
+void node_destroy(node_t *node)
 {
-  free(adj->nbrs);
-  free(adj);
+  free(node->nbrs);
+  free(node);
 }

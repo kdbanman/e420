@@ -14,8 +14,8 @@ int io_dbg_lev;
 
 void debug(int level, const char *fmt, ...);
 
-int load_input(char *filename, adj_t **adjacency, int *node_count);
-int save_ranks(char *filename,  adj_t *adjacency, int node_count);
+int load_input(char *filename, graph_t *graph);
+int save_ranks(char *filename,  graph_t *graph);
 
 int get_edge(edge_list_t *edge, FILE *fp);
 

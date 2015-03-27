@@ -37,8 +37,7 @@ int main(int argc, char* argv[])
 {
   char    *input_filename, *output_filename;
   double  time_start, time_end;
-  adj_t   *adj; /* adjacency list for graph nodes. */
-  int     node_count; /* size of adjacency list. */
+  graph_t   graph; /* adjacency list for graph nodes. */
 
   io_dbg_lev = atoi(getenv("DEBUG"));
   
@@ -48,7 +47,7 @@ int main(int argc, char* argv[])
   output_filename = argv[2];
 
   /* Allocate and populate graph array. */
-  if (load_input(input_filename, &adj, &node_count))
+  if (load_input(input_filename, &graph))
     return 1;
 
   /* Record start time */
@@ -57,14 +56,13 @@ int main(int argc, char* argv[])
   /* Record end time and report delta. */
   GET_TIME(time_end);
   printf("Elapsed time for size %d: %5.3fms\n",
-            node_count,
+            0, // TODO should be graph->node_count
             time_end - time_start);
 
   /* Save output. */
-  save_ranks(output_filename, adj, node_count);
+  save_ranks(output_filename, &graph);
 
-  /* Deallocate graph array. */
-  // TODO destroy every adj_t
+  /* TODO Deallocate graph array. */
 
   return 0;
 } /* main */
