@@ -15,7 +15,7 @@ typedef struct edge_list_t {
   struct edge_list_t *next;
 } edge_list_t;
 
-void edge_init(edge_list_t *edge_list, int src, int dst);
+edge_list_t * edge_init(int src, int dst);
 void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 
 /*
@@ -27,7 +27,7 @@ typedef struct adj_t {
   int *nbrs;
 } adj_t;
 
-void adj_init(adj_t *adj, double rank, int *nbrs, int nbr_count);
+adj_t * adj_init(double rank, int *nbrs, int nbr_count);
 void adj_destroy(adj_t *adj);
 
 #endif

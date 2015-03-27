@@ -1,17 +1,23 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include "graph.h"
 #include "io.h"
 
-void debug(int level, char *print_str)
+void debug(int level, const char *fmt, ...)
 {
-  if (debug_level >= level) printf(print_str);
+  if (io_dbg_lev >= level) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+  }
 }
 
 int load_input(char *filename, adj_t **adjacency, int *node_count)
 {	
   FILE* fp;
   int edge_no;
-  edge_list_t *first_edge, *previous_edge, *current_edge;
+  edge_list_t first_edge, previous_edge, current_edge;
 
   if ((fp=fopen(filename, "r"))==NULL)
   {
@@ -21,15 +27,17 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
 
   // populate linked list by getting first edge, then iterating through
   // remaining edges assuming that previous edge exists.
-  printf("getting first\n");
-  get_edge(first_edge, fp);
+  debug(VERBOSE, "getting first\n");
+  get_edge(&first_edge, fp);
   previous_edge = first_edge;
   edge_no = 0;
-  while (get_edge(current_edge, fp)) {
+  debug(VERBOSE, "getting edge %d\n", edge_no);
+  while (get_edge(&current_edge, fp)) {
     edge_no++;
-    printf("getting edge %d\n", edge_no);
-    edge_list_connect(previous_edge, current_edge);
+    debug(VERBOSE, "linking edge %d to %d\n", edge_no - 1, edge_no);
+    edge_list_connect(&previous_edge, &current_edge);
     previous_edge = current_edge;
+    debug(VERBOSE, "getting edge %d\n", edge_no);
   }
 
   if (ferror(fp)) {
@@ -67,15 +75,18 @@ int get_edge(edge_list_t *edge, FILE *fp)
   while (fgets(line, LINE_BUF_SIZE, fp)) {
     // fgets safely terminates buffer with \0, regardless of line size
     // ignore #comments and empty lines
-    if (line[0] == '\0' || line[0] == '\n' || line[0] == '#')
+    if (line[0] == '\0' || line[0] == '\n' || line[0] == '#') {
+      debug(VERBOSE, "line ignored :%s\n", line);
       continue;
+    }
     // read tab separated integers from line, detect errors
     sscanf(line, "%d\t%d\n", &src, &dst);
     if (src < 1 || dst < 1)
       fprintf(stderr, "Failure reading ints from line: %s\n", line);
 
+    debug(VERBOSE, "initializing edge (%d, %d)\n", src, dst);
     // initialize edge and return control from loop
-    edge_init(edge, src, dst);
+    edge = edge_init(src, dst);
     return 1;
   }
   return 0;

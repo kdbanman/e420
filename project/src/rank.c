@@ -26,6 +26,8 @@
 #include "io.h"
 #include "timer.h"
 
+extern int io_dbg_lev;
+
 /* Method declarations. */
 
 void usage(char* prog_name);
@@ -38,7 +40,7 @@ int main(int argc, char* argv[])
   adj_t   *adj; /* adjacency list for graph nodes. */
   int     node_count; /* size of adjacency list. */
 
-  debug_level = atoi(getenv("DEBUG"));
+  io_dbg_lev = atoi(getenv("DEBUG"));
   
   /* Get number of threads and matrix size from command line */
   if (argc != 3) usage(argv[0]);
