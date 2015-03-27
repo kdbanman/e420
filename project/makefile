@@ -9,7 +9,7 @@
 # Purpose:
 #    compile, run, and test lab program and all support programs
 
-SMALL_SIZE=5000
+SMALL_SIZE=5500
 
 TESTS = $(wildcard test/*)
 
