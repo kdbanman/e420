@@ -5,8 +5,7 @@
 int load_input(char *filename, adj_t **adjacency, int *node_count)
 {	
   FILE* fp;
-  char line[LINE_BUF_SIZE];
-  int row;
+  int edge_no;
   edge_list_t *first_edge, *previous_edge, *current_edge;
 
   if ((fp=fopen(filename, "r"))==NULL)
@@ -15,11 +14,16 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
     return 1;
   }
 
-  // populate linked list by grounding first edge, then
-  // TODO THIS WON'T WORK I'M JUST MAKING A TINY LINKED CYCLE DAMMIT
-  get_edge(first_edge, fp, NULL);
+  // populate linked list by getting first edge, then iterating through
+  // remaining edges assuming that previous edge exists.
+  printf("getting first\n");
+  get_edge(first_edge, fp);
   previous_edge = first_edge;
-  while (get_edge(current_edge, fp, previous_edge)) {
+  edge_no = 0;
+  while (get_edge(current_edge, fp)) {
+    edge_no++;
+    printf("getting edge %d\n", edge_no);
+    edge_list_connect(previous_edge, current_edge);
     previous_edge = current_edge;
   }
 
@@ -47,8 +51,10 @@ int save_ranks(char *filename,  adj_t *adjacency, int node_count)
   return 0;
 }
 
-int get_edge(edge_list_t *edge, FILE *fp, edge_list_t *previous)
+int get_edge(edge_list_t *edge, FILE *fp)
 {
+  
+  static char line[LINE_BUF_SIZE];
   int src, dst;
 
   src = -1;
@@ -64,7 +70,7 @@ int get_edge(edge_list_t *edge, FILE *fp, edge_list_t *previous)
       fprintf(stderr, "Failure reading ints from line: %s\n", line);
 
     // initialize edge and return control from loop
-    edge_init(edge, src, dst, previous);
+    edge_init(edge, src, dst);
     return 1;
   }
   return 0;

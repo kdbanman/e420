@@ -5,17 +5,18 @@
 /*
  * Linked list and list member structures.
  */
-typedef struct edge_list_t {
-  edge_t edge;
-  edge_t *next;
-} edge_list_t;
-
 typedef struct edge_t {
   int src;
   int dst;
 } edge_t;
 
-void edge_init(edge_t *edge, int src, int dst, edge_t *previous);
+typedef struct edge_list_t {
+  edge_t *edge;
+  struct edge_list_t *next;
+} edge_list_t;
+
+void edge_init(edge_list_t *edge_list, int src, int dst);
+void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 
 /*
  * Intended to be stored in an array as an adjacency list element.
