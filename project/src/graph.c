@@ -3,6 +3,21 @@
 #include "util.h"
 #include "graph.h"
 
+void edge_init(edge_list_t *edge, int src, int dst, edge_list_t *previous)
+{
+  edge = malloc(sizeof(edge_list_t));
+  err_check(edge, "Allocating edge_list_t");
+  edge->edge = malloc(sizeof(edge_t));
+  err_check(edge->, "Allocating edge_t");
+
+  edge->edge->src = src;
+  edge->edge->dst = dst;
+  edge->next = NULL;
+  
+  if (previous != NULL)
+    previous.next = edge;
+}
+
 void adj_init(adj_t *adj, double rank, int *nbrs, int nbr_count)
 {
   adj = malloc(sizeof(adj_t));
