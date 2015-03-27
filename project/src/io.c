@@ -39,6 +39,10 @@ int load_input(char *filename, adj_t **adjacency, int *node_count)
     previous_edge = current_edge;
     debug(VERBOSE, "getting edge %d\n", edge_no);
   }
+  
+  debug(LOW, "%d edges read into linked list.\n", edge_no);
+  
+  //TODO count nodes and make adjacency list
 
   if (ferror(fp)) {
     fprintf(stderr, "Failure while reading from %s\n", filename);
@@ -58,6 +62,7 @@ int save_ranks(char *filename,  adj_t *adjacency, int node_count)
     return 1;
   }
 
+  //TODO actually save
   //for (i=0; i<n; ++i) fprintf(fp, "%f\n", b[i]);
 
   fclose(fp);
