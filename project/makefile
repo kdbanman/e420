@@ -15,7 +15,7 @@ TESTS = $(wildcard test/*)
 
 DEPS = bin/util.o bin/io.o bin/graph.o
 
-trim: src/datatrim.c
+bin/trim: src/datatrim.c
 	gcc -Wall -Wextra -o bin/trim src/datatrim.c
 
 bin/util.o: src/util.c src/util.h
@@ -27,10 +27,10 @@ bin/io.o: src/io.c src/io.h
 bin/graph.o: src/graph.c src/graph.h bin/util.o
 	gcc -Wall -Wextra -o bin/graph.o -c src/graph.c
 
-rank: src/rank.c bin/util.o bin/io.o bin/graph.o
+bin/rank: src/rank.c bin/util.o bin/io.o bin/graph.o
 	gcc -Wall -Wextra -o bin/rank src/rank.c $(DEPS)
 
-run_small: trim rank
+run_small: bin/trim bin/rank
 	# Generate smaller graph
 	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	# Calculate result
