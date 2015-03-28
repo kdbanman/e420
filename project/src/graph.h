@@ -50,7 +50,7 @@ graph_t * graph_init();
  * Add edge between src and dst using add_nbr(). (Does not check for existence.)
  * Increment edge count. TODO
  */
-void graph_add_edge(int src_id, int dst_id);
+void graph_add_edge(graph_t *graph, int src_idx, int dst_idx);
 void graph_destroy(graph_t *graph);
 
 #endif

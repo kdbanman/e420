@@ -5,6 +5,20 @@
 #include "graph.h"
 
 /*--------------------------------------------------------------------*/
+/*-------------------INTERNAL FUNCTIONS-------------------------------*/
+/*--------------------------------------------------------------------*/
+
+/*--------------------------------------------------------------------*/
+node_t * resize_nodes(node_t *nodes, int size)
+{
+  return (node_t *) realloc(nodes, sizeof(node_t) * size);
+}
+
+/*--------------------------------------------------------------------*/
+/*-------------------PUBLIC FUNCTIONS---------------------------------*/
+/*--------------------------------------------------------------------*/
+
+/*--------------------------------------------------------------------*/
 edge_list_t * edge_init(int src, int dst)
 {
   edge_list_t *edge_list = (edge_list_t *) malloc(sizeof(edge_list_t));
@@ -49,7 +63,7 @@ void add_nbr(node_t *src, node_t *dst)
         src->idx,
         src->nbr_count);
 
-  src->nbrs = (node_t *) realloc(src->nbrs, sizeof(node_t) * src->nbr_count);
+  src->nbrs = resize_nodes(src->nbrs, src->nbr_count);
   err_check(src->nbrs, "Reallocating src->nbrs");
 
   debug(VERBOSE, "adding node %d to %d nbrs\n", dst->idx, src->idx);
@@ -77,9 +91,29 @@ graph_t * graph_init()
 }
 
 /*--------------------------------------------------------------------*/
-void graph_add_edge(int src_id, int dst_id)
+void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 {
+  int max_idx, i;
 
+  // Ensure all nodes up to the highest index being added exist
+  max_idx = src_idx >= dst_idx ? src_idx : dst_idx;
+  if (src_idx >= graph->node_count || dst_idx >= graph->node_count) {
+    debug(VERBOSE,
+          "reallocating nodes from %d to %d\n",
+          graph->node_count,
+          max_idx);
+    graph->nodes = resize_nodes(graph->nodes, max_idx);
+
+    for (i = graph->node_count; i < max_idx; i++) {
+      debug(VERBOSE, "initializing node %d\n", i);
+      graph->nodes[i] = *(node_init(i));
+    }
+
+    graph->node_count = max_idx;
+  }
+
+  add_nbr(&(graph->nodes[src_idx]), &(graph->nodes[dst_idx]));
+  graph->edge_count++;
 }
 
 /*--------------------------------------------------------------------*/
@@ -87,14 +121,14 @@ void graph_destroy(graph_t *graph)
 {
   int i;
   for (i = 0; i < graph->node_count; i++) {
-    debeg(VERBOSE, "destroying node %d\n", i);
+    debug(VERBOSE, "destroying node %d\n", i);
     node_destroy(&(graph->nodes[i]));
   }
 
-  debeg(VERBOSE, "freeing node array\n");
+  debug(VERBOSE, "freeing node array\n");
   if (graph->nodes != NULL)
     free(graph->nodes);
 
-  debeg(VERBOSE, "freeing graph pointer\n");
+  debug(VERBOSE, "freeing graph pointer\n");
   free(graph);
 }
