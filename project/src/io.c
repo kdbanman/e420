@@ -17,7 +17,7 @@ int load_input(char *filename, graph_t *graph)
 {	
   FILE* fp;
   int edge_no;
-  edge_list_t first_edge, previous_edge, current_edge;
+  edge_list_t current_edge;
 
   if ((fp=fopen(filename, "r"))==NULL)
   {
@@ -33,7 +33,11 @@ int load_input(char *filename, graph_t *graph)
     debug(VERBOSE, "retrieved edge %d\n", edge_no);
     graph_add_edge(graph, current_edge.edge->src, current_edge.edge->dst);
 
-    debug(VERBOSE, "added edge %d\n", edge_no);
+    debug(VERBOSE,
+          "added edge %d from %d to %d\n",
+          edge_no,
+          current_edge.edge->src,
+          current_edge.edge->dst);
     edge_no++;
   }
 
@@ -98,9 +102,13 @@ void debug_print_node(int level, node_t node)
   int i;
   debug(level, "Node %d\n", node.idx);
   debug(level, "  Rank: %f\n", node.rank);
-  debug(level, "  %d neighbors: ", node.nbr_count);
-  for (i = 0; i < node.nbr_count; i++)
-    debug(level, " %d", node.nbrs[i].idx);
+  debug(level, "  %d sources: ", node.source_count);
+  for (i = 0; i < node.source_count; i++)
+    debug(level, " %d", node.sources[i].idx);
+  debug(level, "\n");
+  debug(level, "  %d targets: ", node.target_count);
+  for (i = 0; i < node.target_count; i++)
+    debug(level, " %d", node.targets[i].idx);
   debug(level, "\n");
 }
 
@@ -109,5 +117,6 @@ void debug_print_graph(int level, graph_t graph)
   int i;
   debug(level, "%d nodes, %d edges:\n", graph.node_count, graph.edge_count);
   for (i = 0; i < graph.node_count; i++)
-    debug_print_node(level, graph.nodes[i]);
+    if (!(graph.nodes[i].empty))
+      debug_print_node(level, graph.nodes[i]);
 }

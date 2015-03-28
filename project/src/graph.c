@@ -47,9 +47,12 @@ node_t * node_init(int idx)
   node_t *node = (node_t *) malloc(sizeof(node_t));
   err_check(node, "Allocating node_t");
 
+  node->empty = 1;
   node->idx = idx;
-  node->nbr_count = 0;
-  node->nbrs = NULL;
+  node->source_count = 0;
+  node->target_count = 0;
+  node->sources = NULL;
+  node->targets = NULL;
   node->rank = 0.0;
   
   return node;
@@ -58,29 +61,40 @@ node_t * node_init(int idx)
 /*--------------------------------------------------------------------*/
 void add_nbr(node_t *src, node_t *dst)
 {
-  src->nbr_count++;
-  debug(VERBOSE,
-        "reallocating node %d nbrs <0x%x> to length %d\n",
-        src->idx,
-        src->nbrs,
-        src->nbr_count);
+  src->empty = 0;
+  dst->empty = 0;
 
-  src->nbrs = resize_nodes(src->nbrs, src->nbr_count);
-  err_check(src->nbrs, "Reallocating src->nbrs");
+  src->target_count++;
+  dst->source_count++;
 
   debug(VERBOSE,
-        "node %d nbrs new addr <0x%x>\n",
+        "reallocating node %d targets <0x%x> to length %d\n",
         src->idx,
-        src->nbrs);
+        src->targets,
+        src->target_count);
+  src->targets = resize_nodes(src->targets, src->target_count);
+  err_check(src->targets, "Reallocating src->targets");
 
-  debug(VERBOSE, "adding node %d to %d nbrs\n", dst->idx, src->idx);
-  src->nbrs[src->nbr_count - 1] = *dst;
+  debug(VERBOSE,
+        "reallocating node %d sources <0x%x> to length %d\n",
+        dst->idx,
+        dst->sources,
+        dst->source_count);
+  dst->sources = resize_nodes(dst->sources, dst->source_count);
+  err_check(dst->sources, "Reallocating dst->sources");
+
+  debug(VERBOSE, "adding node %d to %d src->targets\n", dst->idx, src->idx);
+  src->targets[src->target_count - 1] = *dst;
+
+  debug(VERBOSE, "adding node %d to %d dst->sources\n", src->idx, dst->idx);
+  dst->sources[dst->source_count - 1] = *src;
 }
 
 /*--------------------------------------------------------------------*/
 void node_destroy(node_t *node)
 {
-  free(node->nbrs);
+  free(node->sources);
+  free(node->targets);
   free(node);
 }
 
@@ -100,28 +114,28 @@ graph_t * graph_init()
 /*--------------------------------------------------------------------*/
 void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 {
-  int max_idx, i;
+  int necessary_length, i;
 
   debug(VERBOSE, "adding edge to graph from %d to %d\n", src_idx, dst_idx);
 
   // Ensure all nodes up to the highest index being added exist
-  max_idx = src_idx >= dst_idx ? src_idx : dst_idx;
-  if (src_idx >= graph->node_count || dst_idx >= graph->node_count) {
+  necessary_length = 1 + (src_idx >= dst_idx ? src_idx : dst_idx);
+  if (necessary_length >= graph->node_count) {
     debug(VERBOSE,
-          "reallocating nodes <0x%x> from size %d to %d\n",
+          "reallocating nodes <0x%x> from size %d to size %d\n",
           graph->nodes,
           graph->node_count,
-          max_idx + 1);
-    graph->nodes = resize_nodes(graph->nodes, max_idx + 1);
+          necessary_length);
+    graph->nodes = resize_nodes(graph->nodes, necessary_length);
 
     debug(VERBOSE, "nodes new addr <0x%x>\n", graph->nodes);
 
-    for (i = graph->node_count; i < max_idx; i++) {
+    for (i = graph->node_count; i < necessary_length; i++) {
       debug(VERBOSE, "initializing node %d\n", i);
       graph->nodes[i] = *(node_init(i));
     }
 
-    graph->node_count = max_idx + 1;
+    graph->node_count = necessary_length;
   }
 
   add_nbr(&(graph->nodes[src_idx]), &(graph->nodes[dst_idx]));

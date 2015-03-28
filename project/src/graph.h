@@ -20,12 +20,15 @@ void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 
 /*
  * Intended to be stored in an array as an adjacency list element.
- * Stores page rank and an array of neighbors.
+ * Stores page rank and an array of source/target neighbors.
  */
 typedef struct node_t {
+  int empty;
   int idx;
-  int nbr_count;
-  struct node_t *nbrs;
+  int source_count;
+  int target_count;
+  struct node_t *sources;
+  struct node_t *targets;
   double rank;
 } node_t;
 
