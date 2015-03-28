@@ -55,3 +55,28 @@ void node_destroy(node_t *node)
   free(node->nbrs);
   free(node);
 }
+
+/*--------------------------------------------------------------------*/
+graph_t * graph_init()
+{
+  graph_t *graph = (graph_t *) malloc(sizeof(graph_t));
+  err_check(graph, "Allocating graph_t");
+
+  graph->node_count = 0;
+  graph->edge_count = 0;
+  graph->nodes = NULL;
+
+  return graph;
+}
+
+/*--------------------------------------------------------------------*/
+void graph_add_edge(int src_id, int dst_id)
+{
+
+}
+
+/*--------------------------------------------------------------------*/
+void graph_destroy(graph_t *graph)
+{
+
+}

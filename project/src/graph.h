@@ -42,7 +42,7 @@ typedef struct graph_t {
 } graph_t;
 
 /* Allocates a graph struct to empty contents.
- * TODO Malloc zero size so realloc works later?
+ * node_t array is initialized to NULL, intended for realloc() in add_edge().
  */
 graph_t * graph_init();
 /* Reallocs node array if necessary, initializing additional elements to NULL.
@@ -51,5 +51,6 @@ graph_t * graph_init();
  * Increment edge count. TODO
  */
 void graph_add_edge(int src_id, int dst_id);
+void graph_destroy(graph_t *graph);
 
 #endif
