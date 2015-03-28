@@ -8,8 +8,11 @@
 #
 # Purpose:
 #    compile, run, and test lab program and all support programs
+#
 
-SMALL_SIZE=5500
+NUM_HOSTS = 15
+
+SMALL_SIZE = 5500
 
 TESTS = $(wildcard test/*)
 
@@ -36,8 +39,14 @@ run_small: bin/trim bin/rank
 	# Calculate result
 	bin/rank data/small.txt data/small_out.txt
 
-run: bin/trim bin/rank
+run_full: bin/trim bin/rank
 	bin/rank data/full.txt data/full_out.txt
+
+hostfile:
+	rm -f data/hostfile.txt
+	for i in `shuf -i 1-20 -n $(NUM_HOSTS)`; do echo "e5-05-`if test $$i -lt 10; then echo 0; fi`$$i.ece.ualberta.ca"; done > data/hostfile.txt
+	cat data/hostfile.txt
+	for host in `cat data/hostfile.txt`;  do ssh $$host "hostname " ; done
 
 clean:
 	rm -rf bin/*
