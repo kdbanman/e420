@@ -44,8 +44,15 @@ node_t * node_init(int idx)
 void add_nbr(node_t *src, node_t *dst)
 {
   src->nbr_count++;
+  debug(VERBOSE,
+        "reallocating node %d nbrs length %d\n",
+        src->idx,
+        src->nbr_count);
+
   src->nbrs = (node_t *) realloc(src->nbrs, sizeof(node_t) * src->nbr_count);
   err_check(src->nbrs, "Reallocating src->nbrs");
+
+  debug(VERBOSE, "adding node %d to %d nbrs\n", dst->idx, src->idx);
   src->nbrs[src->nbr_count - 1] = *dst;
 }
 
@@ -78,5 +85,16 @@ void graph_add_edge(int src_id, int dst_id)
 /*--------------------------------------------------------------------*/
 void graph_destroy(graph_t *graph)
 {
+  int i;
+  for (i = 0; i < graph->node_count; i++) {
+    debeg(VERBOSE, "destroying node %d\n", i);
+    node_destroy(&(graph->nodes[i]));
+  }
 
+  debeg(VERBOSE, "freeing node array\n");
+  if (graph->nodes != NULL)
+    free(graph->nodes);
+
+  debeg(VERBOSE, "freeing graph pointer\n");
+  free(graph);
 }
