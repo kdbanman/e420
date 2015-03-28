@@ -17,7 +17,7 @@ int load_input(char *filename, graph_t *graph)
 {	
   FILE* fp;
   int edge_no;
-  edge_list_t current_edge;
+  edge_t current_edge;
 
   if ((fp=fopen(filename, "r"))==NULL)
   {
@@ -31,13 +31,13 @@ int load_input(char *filename, graph_t *graph)
   debug(VERBOSE, "getting edges\n");
   while (get_edge(&current_edge, fp)) {
     debug(VERBOSE, "retrieved edge %d\n", edge_no);
-    graph_add_edge(graph, current_edge.edge->src, current_edge.edge->dst);
+    graph_add_edge(graph, current_edge.src, current_edge.dst);
 
     debug(VERBOSE,
           "added edge %d from %d to %d\n",
           edge_no,
-          current_edge.edge->src,
-          current_edge.edge->dst);
+          current_edge.src,
+          current_edge.dst);
     edge_no++;
   }
 
@@ -69,7 +69,7 @@ int save_ranks(char *filename,  graph_t *graph)
   return 0;
 }
 
-int get_edge(edge_list_t *edge, FILE *fp)
+int get_edge(edge_t *edge, FILE *fp)
 {
   
   static char line[LINE_BUF_SIZE];

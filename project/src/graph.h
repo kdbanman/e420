@@ -15,7 +15,7 @@ typedef struct edge_list_t {
   struct edge_list_t *next;
 } edge_list_t;
 
-edge_list_t * edge_init(int src, int dst);
+edge_t * edge_init(int src, int dst);
 void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 
 /*
