@@ -36,6 +36,9 @@ run_small: bin/trim bin/rank
 	# Calculate result
 	bin/rank data/small.txt data/small_out.txt
 
+run: bin/trim bin/rank
+	bin/rank data/full.txt data/full_out.txt
+
 clean:
 	rm -rf bin/*
 
