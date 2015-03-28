@@ -25,30 +25,21 @@ int load_input(char *filename, graph_t *graph)
     return 1;
   }
 
-  // populate linked list by getting first edge, then iterating through
-  // remaining edges assuming that previous edge exists.
-  debug(VERBOSE, "getting first edge\n");
-  get_edge(&first_edge, fp);
-  previous_edge = first_edge;
-  
+  // make graph from list of edges
+  *graph = *(graph_init());
   edge_no = 0;
-  
-  debug(VERBOSE, "getting edge %d\n", edge_no);
+  debug(VERBOSE, "getting edges\n");
   while (get_edge(&current_edge, fp)) {
-    edge_no++;
-    
-    debug(VERBOSE, "linking edge %d to %d\n", edge_no - 1, edge_no);
-    edge_list_connect(&previous_edge, &current_edge);
-    previous_edge = current_edge;
-    
-    debug(VERBOSE, "getting edge %d\n", edge_no);
-  }
-  
-  debug(LOW, "%d edges read into linked list.\n", edge_no);
-  
-  // count nodes and make adjacency list
-  
+    debug(VERBOSE, "retrieved edge %d\n", edge_no);
+    graph_add_edge(graph, current_edge.edge->src, current_edge.edge->dst);
 
+    debug(VERBOSE, "added edge %d\n", edge_no);
+    edge_no++;
+  }
+
+  debug(HIGH, "retrieved graph:\n");
+  debug_print_graph(HIGH, *graph);
+  
   if (ferror(fp)) {
     fprintf(stderr, "Failure while reading from %s\n", filename);
     return 1;
@@ -96,7 +87,7 @@ int get_edge(edge_list_t *edge, FILE *fp)
 
     debug(VERBOSE, "initializing edge (%d, %d)\n", src, dst);
     // initialize edge and return control from loop
-    edge = edge_init(src, dst);
+    *edge = *(edge_init(src, dst));
     return 1;
   }
   return 0;

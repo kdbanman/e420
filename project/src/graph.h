@@ -48,7 +48,7 @@ graph_t * graph_init();
 /* Reallocs node array if necessary, initializing additional elements to NULL.
  * Init src/dst node if they don't exist. Increments node count accordingly.
  * Add edge between src and dst using add_nbr(). (Does not check for existence.)
- * Increment edge count. TODO
+ * Increment edge count.
  */
 void graph_add_edge(graph_t *graph, int src_idx, int dst_idx);
 void graph_destroy(graph_t *graph);

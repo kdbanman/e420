@@ -11,6 +11,7 @@
 /*--------------------------------------------------------------------*/
 node_t * resize_nodes(node_t *nodes, int size)
 {
+  debug(VERBOSE, "resizing node array to %d\n", size);
   return (node_t *) realloc(nodes, sizeof(node_t) * size);
 }
 
@@ -36,7 +37,7 @@ edge_list_t * edge_init(int src, int dst)
 /*--------------------------------------------------------------------*/
 void edge_list_connect(edge_list_t *previous, edge_list_t *next)
 {
-  debug(VERBOSE, "linking edge %x to %x\n", previous, next);
+  debug(VERBOSE, "linking edge <0x%x> to <0x%x>\n", previous, next);
   previous->next = next;
 }
 
@@ -59,12 +60,18 @@ void add_nbr(node_t *src, node_t *dst)
 {
   src->nbr_count++;
   debug(VERBOSE,
-        "reallocating node %d nbrs length %d\n",
+        "reallocating node %d nbrs <0x%x> to length %d\n",
         src->idx,
+        src->nbrs,
         src->nbr_count);
 
   src->nbrs = resize_nodes(src->nbrs, src->nbr_count);
   err_check(src->nbrs, "Reallocating src->nbrs");
+
+  debug(VERBOSE,
+        "node %d nbrs new addr <0x%x>\n",
+        src->idx,
+        src->nbrs);
 
   debug(VERBOSE, "adding node %d to %d nbrs\n", dst->idx, src->idx);
   src->nbrs[src->nbr_count - 1] = *dst;
@@ -95,21 +102,26 @@ void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 {
   int max_idx, i;
 
+  debug(VERBOSE, "adding edge to graph from %d to %d\n", src_idx, dst_idx);
+
   // Ensure all nodes up to the highest index being added exist
   max_idx = src_idx >= dst_idx ? src_idx : dst_idx;
   if (src_idx >= graph->node_count || dst_idx >= graph->node_count) {
     debug(VERBOSE,
-          "reallocating nodes from %d to %d\n",
+          "reallocating nodes <0x%x> from size %d to %d\n",
+          graph->nodes,
           graph->node_count,
-          max_idx);
-    graph->nodes = resize_nodes(graph->nodes, max_idx);
+          max_idx + 1);
+    graph->nodes = resize_nodes(graph->nodes, max_idx + 1);
+
+    debug(VERBOSE, "nodes new addr <0x%x>\n", graph->nodes);
 
     for (i = graph->node_count; i < max_idx; i++) {
       debug(VERBOSE, "initializing node %d\n", i);
       graph->nodes[i] = *(node_init(i));
     }
 
-    graph->node_count = max_idx;
+    graph->node_count = max_idx + 1;
   }
 
   add_nbr(&(graph->nodes[src_idx]), &(graph->nodes[dst_idx]));

@@ -46,12 +46,12 @@ int main(int argc, char* argv[])
   input_filename = argv[1];
   output_filename = argv[2];
 
+  /* Record start time */
+  GET_TIME(time_start);
+
   /* Allocate and populate graph array. */
   if (load_input(input_filename, &graph))
     return 1;
-
-  /* Record start time */
-  GET_TIME(time_start);
 
   /* Record end time and report delta. */
   GET_TIME(time_end);
