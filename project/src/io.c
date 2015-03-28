@@ -101,3 +101,22 @@ int get_edge(edge_list_t *edge, FILE *fp)
   }
   return 0;
 }
+
+void debug_print_node(int level, node_t node)
+{
+  int i;
+  debug(level, "Node %d\n", node.idx);
+  debug(level, "  Rank: %f\n", node.rank);
+  debug(level, "  %d neighbors: ", node.nbr_count);
+  for (i = 0; i < node.nbr_count; i++)
+    debug(level, " %d", node.nbrs[i].idx);
+  debug(level, "\n");
+}
+
+void debug_print_graph(int level, graph_t graph)
+{
+  int i;
+  debug(level, "%d nodes, %d edges:\n", graph.node_count, graph.edge_count);
+  for (i = 0; i < graph.node_count; i++)
+    debug_print_node(level, graph.nodes[i]);
+}

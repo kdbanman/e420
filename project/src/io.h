@@ -19,4 +19,7 @@ int save_ranks(char *filename,  graph_t *graph);
 
 int get_edge(edge_list_t *edge, FILE *fp);
 
+void debug_print_node(int level, node_t node);
+void debug_print_graph(int level, graph_t graph);
+
 #endif
