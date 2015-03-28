@@ -4,6 +4,7 @@
 #include "io.h"
 #include "graph.h"
 
+/*--------------------------------------------------------------------*/
 edge_list_t * edge_init(int src, int dst)
 {
   edge_list_t *edge_list = (edge_list_t *) malloc(sizeof(edge_list_t));
@@ -18,12 +19,14 @@ edge_list_t * edge_init(int src, int dst)
   return edge_list;
 }
 
+/*--------------------------------------------------------------------*/
 void edge_list_connect(edge_list_t *previous, edge_list_t *next)
 {
   debug(VERBOSE, "linking edge %x to %x\n", previous, next);
   previous->next = next;
 }
 
+/*--------------------------------------------------------------------*/
 node_t * node_init(int idx)
 {
   node_t *node = (node_t *) malloc(sizeof(node_t));
@@ -37,6 +40,16 @@ node_t * node_init(int idx)
   return node;
 }
 
+/*--------------------------------------------------------------------*/
+void add_nbr(node_t *src, node_t *dst)
+{
+  src->nbr_count++;
+  src->nbrs = (node_t *) realloc(src->nbrs, sizeof(node_t) * src->nbr_count);
+  err_check(src->nbrs, "Reallocating src->nbrs");
+  src->nbrs[src->nbr_count - 1] = *dst;
+}
+
+/*--------------------------------------------------------------------*/
 void node_destroy(node_t *node)
 {
   free(node->nbrs);

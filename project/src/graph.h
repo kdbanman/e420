@@ -31,7 +31,7 @@ typedef struct node_t {
 
 /* Allocates a node_t struct and sets members to idx, 0, and NULL */
 node_t * node_init(int idx);
-/* TODO Adds dst to src's adjacency list using realloc */
+/* Adds dst to src's adjacency list using realloc */
 void add_nbr(node_t *src, node_t *dst);
 void node_destroy(node_t *node);
 
