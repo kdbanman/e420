@@ -42,11 +42,21 @@ run_small: bin/trim bin/rank
 run_full: bin/trim bin/rank
 	bin/rank data/full.txt data/full_out.txt
 
+# MPI cluster deployment
+#
+# run from ece420g2@e5-05-11.ece.ualberta.ca
+
 hostfile:
 	rm -f data/hostfile.txt
 	for i in `shuf -i 2-20 -n $(NUM_HOSTS)`; do echo "e5-05-`if test $$i -lt 10; then echo 0; fi`$$i.ece.ualberta.ca"; done > data/hostfile.txt
 	cat data/hostfile.txt
 	for host in `cat data/hostfile.txt`;  do ssh $$host "hostname " ; done
+
+bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
+	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
+
+run_mpi: bin/mpi_rank data/hostfile.txt
+	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt bin/mpi_rank
 
 clean:
 	rm -rf bin/*

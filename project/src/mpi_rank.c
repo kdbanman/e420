@@ -1,3 +1,7 @@
+/*
+ * Compile:  mpicc -g -Wall -o mpi_rank mpi_rank.c
+ * Run:      mpirun -np <number of processes> --hostfile <hostfile> ./mpi_rank
+ */
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
