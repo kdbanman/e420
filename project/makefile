@@ -55,7 +55,7 @@ hostfile:
 data/hostfile.txt: hostfile
 
 bin/whois: src/whois.c
-	mpicc -o bin/whois whois.c
+	mpicc -o bin/whois src/whois.c
 
 run_whois: bin/whois data/hostfile.txt
 	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt bin/whois
