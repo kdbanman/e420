@@ -52,10 +52,12 @@ hostfile:
 	cat data/hostfile.txt
 	for host in `cat data/hostfile.txt`;  do ssh $$host "hostname " ; done
 
+data/hostfile.txt: hostfile
+
 bin/whois: src/whois.c
 	mpicc -o bin/whois whois.c
 
-run_whois: bin/whois
+run_whois: bin/whois data/hostfile.txt
 	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt bin/whois
 
 bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
