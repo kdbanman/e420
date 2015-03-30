@@ -20,6 +20,8 @@ TESTS = $(wildcard test/*)
 
 DEPS = bin/util.o bin/io.o bin/graph.o
 
+DIR = $(notdir $(shell pwd))
+
 bin/trim: src/datatrim.c
 	gcc -Wall -Wextra -o bin/trim src/datatrim.c
 
@@ -68,7 +70,7 @@ bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
 
 run_mpi: bin/mpi_rank data/hostfile.txt
-	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(CURRENT_MPI) 
+	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) 
 
 clean:
 	rm -rf bin/*
