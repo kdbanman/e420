@@ -11,6 +11,7 @@
 #
 
 NUM_HOSTS = 15
+CURRENT_MPI = bin/mpi_rank
 
 SMALL_SIZE = 5500
 
@@ -50,7 +51,9 @@ hostfile:
 	rm -f data/hostfile.txt
 	for i in `shuf -i 2-20 -n $(NUM_HOSTS)`; do echo "e5-05-`if test $$i -lt 10; then echo 0; fi`$$i.ece.ualberta.ca"; done > data/hostfile.txt
 	cat data/hostfile.txt
-	for host in `cat data/hostfile.txt`;  do ssh $$host "hostname " ; done
+
+hosts:
+	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) ; done
 
 data/hostfile.txt: hostfile
 
