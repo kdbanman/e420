@@ -10,7 +10,8 @@
 #    compile, run, and test lab program and all support programs
 #
 
-NUM_HOSTS = 15
+NUM_HOSTS = 5
+NUM_PROCS = 40
 CURRENT_MPI = bin/mpi_rank
 
 SMALL_SIZE = 5500
@@ -67,7 +68,7 @@ bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
 
 run_mpi: bin/mpi_rank data/hostfile.txt
-	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt $(CURRENT_MPI) 
+	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(CURRENT_MPI) 
 
 clean:
 	rm -rf bin/*
