@@ -21,13 +21,15 @@ expect {
   }
 }
 
-# After prompt clone repo
+# After prompt clone repo (may fail if already there)
 expect "*?$ "
 send -- "git clone https://github.com/kdbanman/e420.git\r"
 
-# After clone make thing
+# After possible clone, pull and make thing
 expect "*?$ "
 send -- "cd e420/project\r"
+expect "*?$ "
+send -- "git pull\r"
 expect "*?$ "
 send -- "make $maker\r"
 
