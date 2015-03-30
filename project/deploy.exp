@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+
+set password [lrange $argv 0 0] 
+set host [lrange $argv 1 1]   
+set maker [lrange $argv 2 2]   
+
+set timeout -1   
+
+spawn ssh ece420g2@$host
+match_max 100000
+
+expect {
+  # Accept fingerprint if shown and try again
+  "*?continue connecting (yes/no)?*" {
+    send -- "yes\r"
+    exp_continue
+  }
+  # Look for passwod prompt, send password
+  "*?assword:*" {
+    send -- "$password\r"
+  }
+}
+
+# After prompt clone repo
+expect "*?$ "
+send -- "git clone https://github.com/kdbanman/e420.git\r"
+
+# After clone make thing
+expect "*?$ "
+send -- "cd e420/project\r"
+expect "*?$ "
+send -- "make $maker\r"
+
+# After make exit
+expect "*?$ "
+send -- "exit\r"
