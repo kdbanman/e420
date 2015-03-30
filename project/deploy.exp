@@ -6,7 +6,7 @@ set maker [lrange $argv 2 2]
 
 set timeout -1   
 
-spawn ssh ece420g2$host
+spawn ssh ece420g2@$host
 match_max 100000
 
 expect {
