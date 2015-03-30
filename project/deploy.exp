@@ -18,12 +18,14 @@ expect {
   # Look for passwod prompt, send password
   "*?assword:*" {
     send -- "$password\r"
+    exp_continue
+  }
+  # After prompt clone repo (may fail if already there)
+  "*?$ " {
+    send -- "git clone https://github.com/kdbanman/e420.git\r"
   }
 }
 
-# After prompt clone repo (may fail if already there)
-expect "*?$ "
-send -- "git clone https://github.com/kdbanman/e420.git\r"
 
 # After possible clone, pull and make thing
 expect "*?$ "
