@@ -50,7 +50,7 @@ run_full: bin/trim bin/rank
 
 hostfile:
 	rm -f data/hostfile.txt
-	for i in `shuf -i 2-20 -n $(NUM_HOSTS)`; do echo "e5-05-`if test $$i -lt 10; then echo 0; fi`$$i.ece.ualberta.ca"; done > data/hostfile.txt
+	for i in `shuf -i 2-20 -n $(NUM_HOSTS)`; do echo "ece420g2@e5-05-`if test $$i -lt 10; then echo 0; fi`$$i.ece.ualberta.ca"; done > data/hostfile.txt
 	cat data/hostfile.txt
 
 hosts:
