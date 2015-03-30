@@ -67,7 +67,7 @@ bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
 
 run_mpi: bin/mpi_rank data/hostfile.txt
-	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt bin/mpi_rank
+	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt $(CURRENT_MPI) 
 
 clean:
 	rm -rf bin/*
