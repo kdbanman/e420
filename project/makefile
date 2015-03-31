@@ -67,7 +67,7 @@ run_whois: bin/whois
 bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
 
-run_mpi: bin/mpi_rank
+run_mpi: $(CURRENT_MPI)
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) 
 
 clean:
