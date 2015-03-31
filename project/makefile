@@ -66,7 +66,7 @@ bin/whois: src/whois.c
 	mpicc -o bin/whois src/whois.c
 
 run_whois: bin/whois
-	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/whois
+	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/bin/whois
 
 bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
