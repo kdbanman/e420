@@ -48,7 +48,11 @@ run_full: bin/trim bin/rank
 
 # MPI cluster deployment
 #
-# run from ece420g2@e5-05-11.ece.ualberta.ca
+# run from ece420g2@e5-05-xx.ece.ualberta.ca
+# 
+# make hostfile [NUM_HOSTS=N]
+# PASS=***** make hosts
+# make run_mpi [NUM_PROCS=M]
 
 hostfile:
 	rm -f data/hostfile.txt
@@ -62,7 +66,7 @@ bin/whois: src/whois.c
 	mpicc -o bin/whois src/whois.c
 
 run_whois: bin/whois
-	mpirun -np $(NUM_HOSTS) --hostfile data/hostfile.txt bin/whois
+	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/whois
 
 bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
