@@ -20,7 +20,7 @@ TESTS = $(wildcard test/*)
 
 DEPS = bin/util.o bin/io.o bin/graph.o
 
-DIR = $(notdir $(shell pwd))
+DIR = $(shell pwd)
 
 bin/trim: src/datatrim.c
 	gcc -Wall -Wextra -o bin/trim src/datatrim.c
@@ -57,8 +57,6 @@ hostfile:
 
 hosts:
 	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) ; done
-
-data/hostfile.txt: hostfile
 
 bin/whois: src/whois.c
 	mpicc -o bin/whois src/whois.c
