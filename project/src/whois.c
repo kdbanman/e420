@@ -15,7 +15,7 @@ main(int argc, char **argv ) {
 
     gethostname(name, buflen);
     
-    printf( "Victoria is sexy.  Rank %d of %d, host %s\n", rank, size, name);
+    printf( "I am process %d of %d on machine %s, and I think Victoria is super hot.\n", rank, size, name);
 
     MPI_Finalize();
 }
