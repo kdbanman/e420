@@ -151,13 +151,13 @@ void debug_print_node(int level, node_t node)
   int i;
   debug(level, "Node %d\n", node.idx);
   debug(level, "  Rank: %f\n", node.rank);
-  debug(level, "  %d sources: ", node.source_count);
-  for (i = 0; i < node.source_count; i++)
-    debug(level, " %d", node.sources[i].idx);
+  debug(level, "  %d sources: ", node.incoming_count);
+  for (i = 0; i < node.incoming_count; i++)
+    debug(level, " %d", node.incoming[i].idx);
   debug(level, "\n");
-  debug(level, "  %d targets: ", node.target_count);
-  for (i = 0; i < node.target_count; i++)
-    debug(level, " %d", node.targets[i].idx);
+  debug(level, "  %d targets: ", node.outgoing_count);
+  for (i = 0; i < node.outgoing_count; i++)
+    debug(level, " %d", node.outgoing[i].idx);
   debug(level, "\n");
 }
 

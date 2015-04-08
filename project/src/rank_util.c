@@ -95,7 +95,7 @@ double rank_node(graph_t *graph, int node_id)
 	double rank;
 	int i;
 
-	for (i = 0; i < graph->nodes[i].target_count; i++) {
+	for (i = 0; i < graph->nodes[i].outgoing_count; i++) {
 		//TODO
 		rank = 0.0;
 	}

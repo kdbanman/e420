@@ -28,10 +28,10 @@ void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 typedef struct node_t {
   int empty;
   int idx;
-  int source_count;
-  int target_count;
-  struct node_t *sources;
-  struct node_t *targets;
+  int incoming_count;
+  int outgoing_count;
+  struct node_t *incoming;
+  struct node_t *outgoing;
   double rank;
 } node_t;
 

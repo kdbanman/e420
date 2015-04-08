@@ -46,10 +46,10 @@ node_t * node_init(int idx)
 
   node->empty = 1;
   node->idx = idx;
-  node->source_count = 0;
-  node->target_count = 0;
-  node->sources = NULL;
-  node->targets = NULL;
+  node->incoming_count = 0;
+  node->outgoing_count = 0;
+  node->incoming = NULL;
+  node->outgoing = NULL;
   node->rank = 0.0;
   
   return node;
@@ -61,37 +61,37 @@ void add_nbr(node_t *src, node_t *dst)
   src->empty = 0;
   dst->empty = 0;
 
-  src->target_count++;
-  dst->source_count++;
+  src->outgoing_count++;
+  dst->incoming_count++;
 
   debug(VERBOSE,
         "reallocating node %d targets <0x%x> to length %d\n",
         src->idx,
-        src->targets,
-        src->target_count);
-  src->targets = resize_nodes(src->targets, src->target_count);
-  err_check(src->targets, "Reallocating src->targets");
+        src->outgoing,
+        src->outgoing_count);
+  src->outgoing = resize_nodes(src->outgoing, src->outgoing_count);
+  err_check(src->outgoing, "Reallocating src->targets");
 
   debug(VERBOSE,
         "reallocating node %d sources <0x%x> to length %d\n",
         dst->idx,
-        dst->sources,
-        dst->source_count);
-  dst->sources = resize_nodes(dst->sources, dst->source_count);
-  err_check(dst->sources, "Reallocating dst->sources");
+        dst->incoming,
+        dst->incoming_count);
+  dst->incoming = resize_nodes(dst->incoming, dst->incoming_count);
+  err_check(dst->incoming, "Reallocating dst->sources");
 
   debug(VERBOSE, "adding node %d to %d src->targets\n", dst->idx, src->idx);
-  src->targets[src->target_count - 1] = *dst;
+  src->outgoing[src->outgoing_count - 1] = *dst;
 
   debug(VERBOSE, "adding node %d to %d dst->sources\n", src->idx, dst->idx);
-  dst->sources[dst->source_count - 1] = *src;
+  dst->incoming[dst->incoming_count - 1] = *src;
 }
 
 /*--------------------------------------------------------------------*/
 void node_destroy(node_t *node)
 {
-  free(node->sources);
-  free(node->targets);
+  free(node->incoming);
+  free(node->outgoing);
   free(node);
 }
 
