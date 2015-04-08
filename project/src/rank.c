@@ -37,7 +37,9 @@ int main(int argc, char* argv[])
 {
   char    *input_filename, *output_filename;
   double  time_start, time_end;
-  graph_t   graph; /* adjacency list for graph nodes. */
+  edge_t	 *edges;
+  int			 edge_count;
+  graph_t  graph, graph2; /* adjacency list for graph nodes. */
 
   io_dbg_lev = atoi(getenv("DEBUG"));
   
@@ -52,6 +54,11 @@ int main(int argc, char* argv[])
   /* Allocate and populate graph array. */
   if (load_input(input_filename, &graph))
     return 1;
+
+  if (load_edges(input_filename, &edges, &edge_count))
+  	return 1;
+
+  graph_build(&graph2, edges, edge_count);
 
   /* Record end time and report delta. */
   GET_TIME(time_end);

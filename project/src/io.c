@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include "graph.h"
 #include "io.h"
@@ -44,6 +45,54 @@ int load_input(char *filename, graph_t *graph)
   debug(HIGH, "retrieved graph:\n");
   debug_print_graph(HIGH, *graph);
   
+  if (ferror(fp)) {
+    fprintf(stderr, "Failure while reading from %s\n", filename);
+    return 1;
+  }
+
+  return 0;
+}
+
+int load_edges(char *filename, edge_t **edges, int *edge_no)
+{
+  FILE* fp;
+  int curr_size;
+  edge_t current_edge;
+
+  if ((fp=fopen(filename, "r"))==NULL)
+  {
+    fprintf(stderr, "Failed to open %s\n", filename);
+    return 1;
+  }
+
+  // make array of edges
+  curr_size = 1000;
+  *edges = (edge_t *) malloc(curr_size * sizeof(edge_t *));
+  *edge_no = 0;
+  debug(VERBOSE, "getting edges\n");
+  while (get_edge(&((*edges)[*edge_no]), fp)) {
+    debug(VERBOSE, "retrieved edge %d\n", *edge_no);
+    debug(VERBOSE,
+          "added edge %d,  from %d to %d\n",
+          *edge_no,
+          current_edge.src,
+          current_edge.dst);
+    (*edge_no)++;
+    //  resize array if necessary.
+    if (*edge_no + 1 >= curr_size) {
+    	curr_size += 1000;
+    	debug(HIGH, "resizing edge array to %d elements\n", curr_size);
+    	*edges = (edge_t *) realloc(*edges, curr_size * sizeof(edge_t *));
+    }
+  }
+
+  // resize array to edge_no
+  debug(HIGH, "resizing edge array to %d elements\n", *edge_no);
+  *edges = (edge_t *) realloc(*edges, *edge_no * sizeof(edge_t *));
+
+  debug(HIGH, "retrieved edges:\n");
+  debug_print_edge_array(HIGH, *edges, *edge_no);
+
   if (ferror(fp)) {
     fprintf(stderr, "Failure while reading from %s\n", filename);
     return 1;
@@ -118,5 +167,14 @@ void debug_print_graph(int level, graph_t graph)
   debug(level, "%d nodes, %d edges:\n", graph.node_count, graph.edge_count);
   for (i = 0; i < graph.node_count; i++)
     if (!(graph.nodes[i].empty))
-      debug_print_node(level, graph.nodes[i]);
+      debug_print_node(level + 1, graph.nodes[i]);
+}
+
+void debug_print_edge_array(int level, edge_t *edges, int size)
+{
+	int i;
+	debug(level, "%d edges\n", size);
+	for (i = 0; i < size; i++) {
+		debug(level + 1, "  src: %4d  dst: %4d\n", edges[i].src, edges[i].dst);
+	}
 }

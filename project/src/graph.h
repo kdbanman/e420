@@ -15,6 +15,9 @@ typedef struct edge_list_t {
   struct edge_list_t *next;
 } edge_list_t;
 
+/*
+ * Returns a pointer to a freshly malloced edge.
+ */
 edge_t * edge_init(int src, int dst);
 void edge_list_connect(edge_list_t *previous, edge_list_t *next);
 
@@ -54,6 +57,7 @@ graph_t * graph_init();
  * Increment edge count.
  */
 void graph_add_edge(graph_t *graph, int src_idx, int dst_idx);
+void graph_build(graph_t *graph, edge_t *edges, int size);
 void graph_destroy(graph_t *graph);
 
 #endif

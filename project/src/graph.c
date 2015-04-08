@@ -140,6 +140,19 @@ void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 }
 
 /*--------------------------------------------------------------------*/
+void graph_build(graph_t *graph, edge_t *edges, int size)
+{
+	int i;
+
+  // make graph from list of edges
+  *graph = *(graph_init());
+  for (i = 0; i < size; i++) {
+  	graph_add_edge(graph, edges[i].src, edges[i].dst);
+  }
+  debug_print_graph(HIGH, *graph);
+}
+
+/*--------------------------------------------------------------------*/
 void graph_destroy(graph_t *graph)
 {
   int i;
