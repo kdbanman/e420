@@ -18,7 +18,7 @@ SMALL_SIZE = 5500
 
 TESTS = $(wildcard test/*)
 
-DEPS = bin/util.o bin/io.o bin/graph.o
+DEPS = bin/util.o bin/io.o bin/graph.o bin/rank_util.o
 
 DIR = $(shell pwd)
 
