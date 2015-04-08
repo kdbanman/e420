@@ -33,8 +33,11 @@ bin/io.o: src/io.c src/io.h
 
 bin/graph.o: src/graph.c src/graph.h bin/util.o
 	gcc -Wall -Wextra -o bin/graph.o -c src/graph.c
+	
+bin/rank_util.o: src/rank_util.c src/rank_util.h bin/util.o bin/graph.o
+	gcc -Wall -Wextra -o bin/rank_util.o -c src/rank_util.c
 
-bin/rank: src/rank.c bin/util.o bin/io.o bin/graph.o
+bin/rank: src/rank.c bin/util.o bin/io.o bin/graph.o bin/rank_util.o
 	gcc -Wall -Wextra -o bin/rank src/rank.c $(DEPS)
 
 run_small: bin/trim bin/rank
@@ -68,7 +71,7 @@ bin/whois: src/whois.c
 run_whois: bin/whois
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/bin/whois
 
-bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o
+bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o bin/rank_util.o
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
 
 run_mpi: $(CURRENT_MPI)
