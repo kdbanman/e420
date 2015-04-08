@@ -34,7 +34,7 @@ int load_input(char *filename, graph_t *graph)
     graph_add_edge(graph, current_edge.src, current_edge.dst);
 
     debug(VERBOSE,
-          "added edge %d from %d to %d\n",
+          "added edge %d,  from %d to %d\n",
           edge_no,
           current_edge.src,
           current_edge.dst);
