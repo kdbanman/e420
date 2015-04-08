@@ -153,11 +153,11 @@ void debug_print_node(int level, node_t node)
   debug(level, "  Rank: %f\n", node.rank);
   debug(level, "  %d sources: ", node.incoming_count);
   for (i = 0; i < node.incoming_count; i++)
-    debug(level, " %d", node.incoming[i].idx);
+    debug(level, " %d", node.incoming[i]->idx);
   debug(level, "\n");
   debug(level, "  %d targets: ", node.outgoing_count);
   for (i = 0; i < node.outgoing_count; i++)
-    debug(level, " %d", node.outgoing[i].idx);
+    debug(level, " %d", node.outgoing[i]->idx);
   debug(level, "\n");
 }
 
@@ -166,8 +166,8 @@ void debug_print_graph(int level, graph_t graph)
   int i;
   debug(level, "%d nodes, %d edges:\n", graph.node_count, graph.edge_count);
   for (i = 0; i < graph.node_count; i++)
-    if (!(graph.nodes[i].empty))
-      debug_print_node(level + 1, graph.nodes[i]);
+    if (!(graph.nodes[i]->empty))
+      debug_print_node(level + 1, *(graph.nodes[i]));
 }
 
 void debug_print_edge_array(int level, edge_t *edges, int size)

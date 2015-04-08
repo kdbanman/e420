@@ -30,8 +30,8 @@ typedef struct node_t {
   int idx;
   int incoming_count;
   int outgoing_count;
-  struct node_t *incoming;
-  struct node_t *outgoing;
+  struct node_t **incoming;
+  struct node_t **outgoing;
   double rank;
 } node_t;
 
@@ -44,7 +44,7 @@ void node_destroy(node_t *node);
 typedef struct graph_t {
   int node_count;
   int edge_count;
-  node_t *nodes;
+  node_t **nodes;
 } graph_t;
 
 /* Allocates a graph struct to empty contents.

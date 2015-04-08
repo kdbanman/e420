@@ -9,10 +9,10 @@
 /*--------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------*/
-node_t * resize_nodes(node_t *nodes, int size)
+node_t ** resize_nodes(node_t **nodes, int size)
 {
-  debug(VERBOSE, "resizing node array to %d\n", size);
-  return (node_t *) realloc(nodes, sizeof(node_t) * size);
+  debug(VERBOSE, "resizing node pointer array to %d\n", size);
+  return (node_t **) realloc(nodes, sizeof(node_t *) * size);
 }
 
 /*--------------------------------------------------------------------*/
@@ -81,15 +81,23 @@ void add_nbr(node_t *src, node_t *dst)
   err_check(dst->incoming, "Reallocating dst->sources");
 
   debug(VERBOSE, "adding node %d to %d src->targets\n", dst->idx, src->idx);
-  src->outgoing[src->outgoing_count - 1] = *dst;
+  src->outgoing[src->outgoing_count - 1] = dst;
 
   debug(VERBOSE, "adding node %d to %d dst->sources\n", src->idx, dst->idx);
-  dst->incoming[dst->incoming_count - 1] = *src;
+  dst->incoming[dst->incoming_count - 1] = src;
 }
 
 /*--------------------------------------------------------------------*/
 void node_destroy(node_t *node)
 {
+	int i;
+
+	for (i = 0; i < node->incoming_count; i++) {
+			free(node->incoming[i]);
+	}
+	for (i = 0; i < node->outgoing_count; i++) {
+		free(node->outgoing[i]);
+	}
   free(node->incoming);
   free(node->outgoing);
   free(node);
@@ -129,13 +137,13 @@ void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 
     for (i = graph->node_count; i < necessary_length; i++) {
       debug(VERBOSE, "initializing node %d\n", i);
-      graph->nodes[i] = *(node_init(i));
+      graph->nodes[i] = node_init(i);
     }
 
     graph->node_count = necessary_length;
   }
 
-  add_nbr(&(graph->nodes[src_idx]), &(graph->nodes[dst_idx]));
+  add_nbr(graph->nodes[src_idx], graph->nodes[dst_idx]);
   graph->edge_count++;
 }
 
@@ -158,7 +166,7 @@ void graph_destroy(graph_t *graph)
   int i;
   for (i = 0; i < graph->node_count; i++) {
     debug(VERBOSE, "destroying node %d\n", i);
-    node_destroy(&(graph->nodes[i]));
+    node_destroy(graph->nodes[i]);
   }
 
   debug(VERBOSE, "freeing node array\n");
