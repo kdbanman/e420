@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   graph_build(&graph, edges, edge_count);
 
   debug(LOW, "Ranking graph...\n");
-  rank(&graph, 1E-5);
+  rank(&graph, 1E-5, graph.node_count);
 
   /* Record end time and report delta. */
   GET_TIME(time_end);

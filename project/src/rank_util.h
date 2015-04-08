@@ -22,22 +22,22 @@
 /*
  * Initialize all pageranks with 1/N.  Mutates graph.
  */
-int rank_init(graph_t *graph);
+int rank_init(graph_t *graph, int total_size);
 
 /*
  * Mutate the graph's node_t.rank at each node with the final rank.
  */
-int rank(graph_t *graph, double threshold);
+int rank(graph_t *graph, double threshold, int total_size);
 
 /*
  * Mutate the graph's node_t.rank at each node for one iteration of rank.
  * Return the total change in rank.
  */
-double rank_iter(graph_t *graph);
+double rank_iter(graph_t *graph, int total_size);
 
 /*
  * Return the rank of the node in the graph.  Do not mutate the node or graph.
  */
-double rank_node(graph_t *graph, int node_id);
+double rank_node(graph_t *graph, int node_id, int total_size);
 
 #endif
