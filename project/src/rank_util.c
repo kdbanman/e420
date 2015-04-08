@@ -64,21 +64,25 @@ int rank(graph_t *graph, double threshold, int total_size)
 double rank_iter(graph_t *graph, int total_size)
 {
 	double new_ranks[graph->node_count];
-	double delta;
+	double delta, old_rank, curr_delta;
 	int i;
 
 	delta = 0.0;
 	for (i = 0; i < graph->node_count; i++) {
+
+		old_rank = graph->nodes[i]->rank;
+
 		debug(VERBOSE, "Calculating rank of node %d. Currently %5.9f... ",
 				i,
-				graph->nodes[i]->rank);
+				old_rank);
 
 		new_ranks[i] = rank_node(graph, i, total_size);
 
-		debug(VERBOSE, "now %5.9f\n", graph->nodes[i]->rank);
+		debug(VERBOSE, "now %5.9f\n", old_rank);
 
+		curr_delta = old_rank - new_ranks[i];
 		// add absolute value to delta
-		delta += new_ranks[i] > 0 ? new_ranks[i] : -1.0 * new_ranks[i];
+		delta += curr_delta > 0 ? curr_delta : -1.0 * curr_delta;
 	}
 
 	debug(HIGH, "Copying ranks to graph.\n");
