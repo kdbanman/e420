@@ -104,6 +104,7 @@ int load_edges(char *filename, edge_t **edges, int *edge_no)
 int save_ranks(char *filename,  graph_t *graph)
 {
   FILE* fp;
+  int i;
 
   if ((fp=fopen(filename, "w"))==NULL)
   {
@@ -111,8 +112,10 @@ int save_ranks(char *filename,  graph_t *graph)
     return 1;
   }
 
-  //TODO actually save
-  //for (i=0; i<n; ++i) fprintf(fp, "%f\n", b[i]);
+  for (i = 0; i < graph->node_count; ++i) {
+  	fprintf(fp, "%d\t%f\n", i, graph->nodes[i]->rank);
+  }
+
 
   fclose(fp);
   return 0;
