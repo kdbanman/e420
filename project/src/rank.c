@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "io.h"
 #include "timer.h"
+#include "rank_util.h"
 
 extern int io_dbg_lev;
 
@@ -39,7 +40,7 @@ int main(int argc, char* argv[])
   double  time_start, time_end;
   edge_t	 *edges;
   int			 edge_count;
-  graph_t  graph, graph2; /* adjacency list for graph nodes. */
+  graph_t  graph; /* adjacency list for graph nodes. */
 
   io_dbg_lev = atoi(getenv("DEBUG"));
   
@@ -51,20 +52,22 @@ int main(int argc, char* argv[])
   /* Record start time */
   GET_TIME(time_start);
 
-  /* Allocate and populate graph array. */
-  if (load_input(input_filename, &graph))
-    return 1;
-
+  debug(LOW, "Loading edges...\n");
   if (load_edges(input_filename, &edges, &edge_count))
   	return 1;
 
-  graph_build(&graph2, edges, edge_count);
+  debug(LOW, "Building graph...\n");
+  graph_build(&graph, edges, edge_count);
+
+  debug(LOW, "Ranking graph...\n");
+  rank(&graph, 1E-5);
 
   /* Record end time and report delta. */
   GET_TIME(time_end);
-  printf("Elapsed time for size %d: %5.3fms\n",
-            0, // TODO should be graph->node_count
-            time_end - time_start);
+  printf("Elapsed time for size %d nodes, %d edges: %5.3fms\n",
+      graph.node_count,
+      graph.edge_count,
+      time_end - time_start);
 
   /* Save output. */
   save_ranks(output_filename, &graph);
