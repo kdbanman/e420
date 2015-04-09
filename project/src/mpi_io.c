@@ -31,7 +31,7 @@ void send_partition(
 		req_no++;
 
 		debug(HIGH, "Sending edge pairs to proc %d.\n", edge_counts[proc], proc);
-		isend(&edge_pairs[proc], edge_counts[proc], proc, &send_reqs[req_no]);
+		isend(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[req_no]);
 		req_no++;
 
 		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
@@ -46,7 +46,7 @@ void send_partition(
 			debug(VERBOSE, "Sending actual incoming boundary to proc %d for boundary with proc %d.\n",
 								proc,
 								nbr_proc);
-			isend(&incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
+			isend(incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 
@@ -63,7 +63,7 @@ void send_partition(
 			debug(VERBOSE, "Sending actual outgoing boundary to proc %d for boundary with proc %d.\n",
 											proc,
 											nbr_proc);
-			isend(&outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
+			isend(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 	}
@@ -93,7 +93,7 @@ int isend(
 		 int buflen = 1024;
 		 char err_buffer[buflen];
 		 MPI_Error_string(ierr,err_buffer,&buflen);
-		 fprintf(stderr,err_buffer);
+		 fprintf(stderr, "%s", err_buffer);
 		 MPI_Finalize();  /* abort*/
 		 return 1;
 	 }
@@ -102,13 +102,29 @@ int isend(
 
 /*-------------------------------------------------------------------*/
 void receive_partition_graph(
-		graph_t *graph
+//		graph_t *graph
 		)
 {
 	// recv size num_procs into edge_counts
 	// recv size edge_counts[proc] into edge_pairs[proc]
 
 	// build graph from edge list
+}
+
+/*-------------------------------------------------------------------*/
+void receive_partition_boundaries(
+//TODO params (by ref)
+		)
+{
+	// note: all sizes * sizeof(int)
+
+	// for each proc
+
+		// recv size num_procs into incoming_count[proc]
+		// recv size incoming_count[proc] into incoming[proc]
+
+		// recv size num_procs into outgoing_count[proc]
+		// recv size outgoing_count[proc] into outgoing[proc]
 }
 
 /*-------------------------------------------------------------------*/
@@ -132,26 +148,10 @@ int recv(
 
 	MPI_Get_count(&status, MPI_INT, &recvd_length);
 	if (recvd_length != length) {
-		fprintf(stderr, "Expected to receive %d elements, got %d!", recvd_length);
+		fprintf(stderr, "Expected to receive %d elements, got %d!", length, recvd_length);
 		return 1;
 	}
 	return 0;
-}
-
-/*-------------------------------------------------------------------*/
-void receive_partition_boundaries(
-//TODO params (by ref)
-		)
-{
-	// note: all sizes * sizeof(int)
-
-	// for each proc
-
-		// recv size num_procs into incoming_count[proc]
-		// recv size incoming_count[proc] into incoming[proc]
-
-		// recv size num_procs into outgoing_count[proc]
-		// recv size outgoing_count[proc] into outgoing[proc]
 }
 
 /*-------------------------------------------------------------------*/

@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "mpi.h"
 
 #ifndef _MPI_IOH_
 #define _MPI_IOH_
@@ -23,16 +24,21 @@ int isend(
 		int *to_send,
 		int length,
 		int target_rank,
-		int tag,
 		MPI_Request *request
 		);
 
 void receive_partition_graph(
-		graph_t *graph
+//		graph_t *graph
 		);
 
 void receive_partition_boundaries(
 //TODO params (by ref)
+		);
+
+int recv(
+		int *recv_buf,
+		int length,
+		int src_rank
 		);
 
 void receive_results_and_save(
