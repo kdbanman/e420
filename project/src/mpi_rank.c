@@ -145,6 +145,8 @@ problem_size_t * init_cluster(
 	debug(LOW, "Loading graph in master...\n");
 	load_input(filename, &graph);
 
+	debug_print_graph(VERBOSE, graph);
+
 	debug(HIGH, "Getting problem size...\n");
 	prob_size = (problem_size_t *) malloc(sizeof(problem_size_t));
 	prob_size->nodes = graph.node_count;
@@ -212,8 +214,55 @@ void transform_send_partition(
 										// edge_pairs[p] = {s_1, t_1, s_2, t_2, ...}
 	int *edge_counts; // length of each array above (2 * E)
 
-	// add an edge from one node to another iff both nodes are in the partition
+	node_t *node;
+	int proc, curr_size, proc_i, node_idx, tgt_i, tgt_idx;
 
+	debug(HIGH, "Allocating for edge pairs arr\n");
+	edge_pairs = (int **) malloc(num_procs * sizeof(int *));
+	debug(HIGH, "Allocating for edge counts arr\n");
+	edge_counts = (int *) malloc(num_procs * sizeof(int));
+	debug(HIGH, "Init edge counts to zero\n");
+	for (proc = 0; proc < num_procs; proc++) {
+		edge_counts[proc] = 0;
+	}
+
+	// add an edge from one node to another iff both nodes are in the partition
+	for (proc = 0; proc < num_procs; proc++) {
+
+		debug(HIGH, "Allocating initially for proc %d pairs\n", proc);
+		curr_size = 100;
+		edge_pairs[proc] = (int *) malloc(curr_size * sizeof(int));
+		for (proc_i = 0; proc_i < node_counts[proc]; proc_i++) {
+
+			debug(VERBOSE, "Get node %d for proc %d\n", proc_i, proc);
+			node_idx = nodes[proc][proc_i];
+			node = graph->nodes[node_idx];
+			// need only look through outgoing - edges are doubly-linked
+			for (tgt_i = 0; tgt_i < node->outgoing_count; tgt_i++) {
+				
+				debug(VERBOSE, "Get target  %d for proc %d\n", proc_i, proc);
+				tgt_idx = node->outgoing[tgt_i]->idx;
+
+				debug(VERBOSE, "Test edge between node id %d and %d\n", node_idx, tgt_idx);
+				if (partitions[tgt_idx] == proc) {
+					// both source and target are in proc - add to proc edge_pairs
+
+					debug(VERBOSE, "Target %d is in partition\n", tgt_idx);
+					edge_pairs[proc][edge_counts[proc]] = node_idx;
+					edge_pairs[proc][edge_counts[proc] + 1] = tgt_idx;
+
+					edge_counts[proc] += 2;
+					// reallocate if necessary
+					if (edge_counts[proc] + 2 >= curr_size) {
+						curr_size += 1000;
+						edge_pairs[proc] = (int *) realloc(edge_pairs[proc], curr_size * sizeof(int));
+					}
+				}
+			}
+		}
+		// reallocate back down to actual size
+		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
+	}
 
 	send_partition(graph, nodes, node_counts, edge_pairs, edge_counts, num_procs);
 
