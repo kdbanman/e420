@@ -72,8 +72,11 @@ bin/whois: src/whois.c
 run_whois: bin/whois
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/bin/whois
 
-bin/mpi_rank: src/mpi_rank.c $(DEPS)
-	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c $(DEPS)
+bin/mpi_io.o: src/mpi_io.h src/mpi_io.c
+	mpicc -Wall -Wextra -o bin/mpi_io.o -c src/mpi_io.c
+	
+bin/mpi_rank: src/mpi_rank.c bin/mpi_io.o $(DEPS)
+	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c bin/mpi_io.o $(DEPS)
 
 run_small_local: $(CURRENT_MPI)
 	# Generate smaller graph

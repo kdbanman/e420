@@ -8,6 +8,7 @@
 #include "io.h"
 #include "timer.h"
 #include "rank_util.h"
+#include "mpi_io.h"
 #include "mpi.h"
 
 /**********************
@@ -50,44 +51,20 @@ void transform_send_partition(
 		int num_procs
 		);
 
-void send_partition(
-		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
-		int *edge_counts,   // lengths of above
-
-		int ***incoming, // each proc: for each proc, targets indexes of
-										 // incoming inter-proc edges. EX: proc 1 from proc 2
-									   // incoming[1][2] = { 4, 4, 5, 7, 10 }
-		int **incoming_counts, // incoming_counts[1][2] = 5
-
-		int ***outgoing, // each proc: for each proc, source indexes of
-										 // outgoing inter-proc edges. EX: proc 1 to proc 2
-										 // incoming[1][2] = { 9, 9, 14 }
-		int **outgoing_counts, // incoming_counts[1][2] = 3
-		int num_procs
-		);
-
 void add_proc_edge(
 		int node_idx,
 		int **proc_buffer,
 		int *count
 		);
 
-void receive_partition(
-//TODO params (by ref)
-		);
-
-void receive_and_save(
-//		char *output_filename,
-//		int *part_sizes,
-//		int num_procs
-		);
-
-void sync_rank(
+void synced_rank(
 //		graph_t *graph,
 //		double threshold,
 //		int total_size,
-//		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
-//		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
+//		int **incoming, //each proc: array of indices for ranks to recv
+//    int *incoming_counts,
+//		int **outgoing, //each proc: array of indices for ranks to send
+//    int *outgoing_counts,
 //		int num_procs
 		);
 
@@ -107,9 +84,11 @@ int main( int argc, char *argv[] )
 	char *input_filename, *output_filename;
 
 	// local data for each proc
-	edge_t *my_edges;
 	int my_rank;
 
+	graph_t my_graph;
+  int **my_incoming, **my_outgoing;
+  int *my_incoming_counts, *my_outgoing_counts;
 
 	MPI_Init( &argc, &argv );
 	MPI_Comm_size( MPI_COMM_WORLD, &num_procs );
@@ -131,12 +110,15 @@ int main( int argc, char *argv[] )
 	MPI_Barrier( MPI_COMM_WORLD );
 
 	// all procs receive work (master sends to self)
+	receive_partition_graph(&my_graph);
+	//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
 
+	synced_rank();
 
 
 	// master receive result array from all (master sends self)
 	if (my_rank == 0) {
-		receive_and_save(output_filename, part_sizes, num_procs);
+		receive_results_and_save(output_filename, part_sizes, num_procs);
 	}
 	/* Record end time and report delta. */
 	GET_TIME(time_end);
@@ -356,78 +338,15 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 	(*proc_buffer)[*count - 1] = node_idx;
 }
 
-void send_partition(
-		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
-		int *edge_counts,   // lengths of above
-
-		int ***incoming, // each proc: for each proc, targets indexes of
-										 // incoming inter-proc edges. EX: proc 1 from proc 2
-									   // incoming[1][2] = { 4, 4, 5, 7, 10 }
-		int **incoming_counts, // incoming_counts[1][2] = 5
-
-		int ***outgoing, // each proc: for each proc, source indexes of
-										 // outgoing inter-proc edges. EX: proc 1 to proc 2
-										 // outgoing[1][2] = { 9, 9, 14 }
-		int **outgoing_counts, // outgoing_counts[1][2] = 3
-		int num_procs)
-{
-	int proc, nbr_proc;
-
-	for (proc = 0; proc < num_procs; proc++) {
-		// isend edge_counts[proc]
-		// isend edge_pairs[proc] len (above)
-
-		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
-			// isend incoming_counts[proc][nbr_proc]
-			// isend incoming[proc][nbr_proc] len above
-		}
-
-		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
-			// isend outgoing_counts[proc][nbr_proc]
-			// isend outgoing[proc][nbr_proc] len above
-		}
-	}
-}
-
-void receive_partition(
-//TODO params (by ref)
-		)
-{
-	// note: all sizes * sizeof(int)
-
-	// recv size num_procs into edge_counts
-	// recv size edge_counts[proc] into edge_pairs[proc]
-
-	// for each proc
-
-		// recv size num_procs into incoming_count[proc]
-		// recv size incoming_count[proc] into incoming[proc]
-
-		// recv size num_procs into outgoing_count[proc]
-		// recv size outgoing_count[proc] into outgoing[proc]
-}
-
-/*-------------------------------------------------------------------*/
-void receive_and_save(
-//		char *output_filename,
-//		int *part_sizes,
-//		int num_procs
-		)
-{
-	// allocate receipt buffers for each proc
-
-	// receive from all procs (including master self)
-
-	// save each buffer to the same file
-}
-
 /*--------------------------------------------------------------------*/
-void sync_rank(
+void synced_rank(
 //		graph_t *graph,
 //		double threshold,
 //		int total_size,
-//		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
-//		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
+//		int **incoming, //each proc: array of indices for ranks to recv
+//    int *incoming_counts,
+//		int **outgoing, //each proc: array of indices for ranks to send
+//    int *outgoing_counts,
 //		int num_procs
 		)
 {
