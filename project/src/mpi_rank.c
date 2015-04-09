@@ -6,82 +6,132 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "graph.h"
+#include "io.c"
+
+
+typedef struct problem_size_t {
+	int nodes;
+	int edges;
+} problem_size_t;
+
+typedef struct result_ele_t {
+	int idx;
+	double rank;
+} result_ele_t;
+
+
+problem_size_t init_cluster(char *filename, int *part_sizes, int num_procs);
+void receive_and_save(char *output_filename, int num_procs);
+void sync_rank(graph_t *graph,
+		double threshold,
+		int total_size,
+		int **out_by_idx,
+		int **in_by_idx,
+		int num_procs);
+
 int main( int argc, char *argv[] )
 {
-    int errs = 0, i, k;
-		int dims[2], periods[2], wsize;
-    int outdims[2], outperiods[2], outcoords[2];
-    int topo_type;
-    int *index, *edges, *outindex, *outedges;
-    MPI_Comm comm1, comm2;
+	// problem-global data
+	int num_procs;
+	int *part_sizes;
+	double time_start, time_end, threshold;
+	problem_size_t prob_size;
+	char *input_filename, *output_filename;
 
-    MPI_Init( &argc, &argv );
-    MPI_Comm_size( MPI_COMM_WORLD, &wsize );
+	// local data for each proc
+	edge_t *my_edges;
+	int *my_rank;
 
-    /* Now do the same with a graph topology */
-    if (wsize >= 3) {
-        index = (int*)malloc(wsize * sizeof(int) );
-        edges = (int*)malloc(wsize * 2 * sizeof(int) );
-        if (!index || !edges) {
-            printf( "Unable to allocate %d words for index or edges\n", 3 * wsize );fflush(stdout);
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-        }
-        index[0] = 2;
-        for (i=1; i<wsize; i++) {
-            index[i] = 2 + index[i-1];
-        }
-        k=0;
-        for (i=0; i<wsize; i++) {
-            edges[k++] = (i-1+wsize) % wsize;
-            edges[k++] = (i+1) % wsize;
-        }
-        MPI_Graph_create( MPI_COMM_WORLD, wsize, index, edges, 0, &comm1 );
-        MPI_Comm_dup( comm1, &comm2 );
-        MPI_Topo_test( comm2, &topo_type );
-        if (topo_type != MPI_GRAPH) {
-            errs++;
-            printf( "Topo type of duped graph was not graph\n" );fflush(stdout);
-        }
-        else {
-            int nnodes, nedges;
-            MPI_Graphdims_get( comm2, &nnodes, &nedges );
-            if (nnodes != wsize) {
-                errs++;
-                printf( "Nnodes = %d, should be %d\n", nnodes, wsize );fflush(stdout);
-            }
-            if (nedges != 2*wsize) {
-                errs++;
-                printf( "Nedges = %d, should be %d\n", nedges, 2*wsize );fflush(stdout);
-            }
-            outindex = (int*)malloc(wsize * sizeof(int) );
-            outedges = (int*)malloc(wsize * 2 * sizeof(int) );
-            if (!outindex || !outedges) {
-                printf( "Unable to allocate %d words for outindex or outedges\n", 3 * wsize );fflush(stdout);
-                MPI_Abort( MPI_COMM_WORLD, 1 );
-            }
 
-            MPI_Graph_get( comm2, wsize, 2*wsize, outindex, outedges );
-            for (i=0; i<wsize; i++) {
-                if (index[i] != outindex[i]) {
-                    printf( "%d = index[%d] != outindex[%d] = %d\n", index[i], i, i, outindex[i] );fflush(stdout);
-                    errs++;
-                }
-            }
-            for (i=0; i<2*wsize; i++) {
-                if (edges[i] != outedges[i]) {
-                    printf( "%d = edges[%d] != outedges[%d] = %d\n", edges[i], i, i, outedges[i] );fflush(stdout);
-                    errs++;
-                }
-            }
-            free( outindex );
-            free( outedges );
-        }
-        free( index );
-        free( edges );
-        MPI_Comm_free( &comm2 );
-        MPI_Comm_free( &comm1 );
-    }
+	MPI_Init( &argc, &argv );
+	MPI_Comm_size( MPI_COMM_WORLD, &num_procs );
+	MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
 
-    MPI_Finalize();
-    return 0;
+	GET_TIME(time_start);
+
+	io_dbg_lev = atoi(getenv("DEBUG"));
+
+	/* Get number of threads and size from command line */
+	if (argc != 3) usage(argv[0]);
+	input_filename = argv[1];
+	output_filename = argv[2];
+
+	// if master, distribute work while rest wait
+	if (my_rank == 0) {
+		prob_size = init_cluster(input_filename, &part_sizes, num_procs);
+	}
+	MPI_Barrier( MPI_COMM_WORLD );
+
+	// all procs receive work (master sends to self)
+
+
+
+	// master receive result array from all (master sends self)
+	if (my_rank == 0) {
+		receive_and_save(output_filename, num_procs);
+	}
+	/* Record end time and report delta. */
+	GET_TIME(time_end);
+	printf("Elapsed time for size %d nodes, %d edges: %5.3fms\n",
+			prob_size.nodes,
+			prob_size.edges,
+			time_end - time_start);
+
+	MPI_Finalize();
+	return 0;
+} // main
+
+/*-------------------------------------------------------------------*/
+problem_size_t * init_cluster(char *filename, int *part_sizes, int num_procs)
+{
+	graph_t graph;
+	int edge_count
+	problem_size_t *prob_size;
+
+	// load graph
+
+	// partition graph
+
+	// send work
+
+	return prob_size;
 }
+
+/*-------------------------------------------------------------------*/
+void receive_and_save(char *output_filename, int *part_sizes, int num_procs)
+{
+	// allocate receipt buffers for each proc
+
+	// receive from all procs (including master self)
+
+	// save each buffer to the same file
+}
+
+/*--------------------------------------------------------------------*/
+void sync_rank(graph_t *graph,
+		double threshold,
+		int total_size,
+		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
+		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
+		int num_procs)
+{
+	double delta;
+
+	rank_init(graph, total_size);
+
+	while (delta >= threshold) {
+		// rank iter on local graph
+
+		// receive other rank arrays
+
+		// include other rank arrays
+	}
+}
+
+/*-------------------------------------------------------------------*/
+void usage(char* prog_name)
+{
+   fprintf(stderr, "usage: %s <input filename> <output filename>\n", prog_name);
+   exit(1);
+}  // usage

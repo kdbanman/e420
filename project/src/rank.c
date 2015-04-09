@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   io_dbg_lev = atoi(getenv("DEBUG"));
   
-  /* Get number of threads and matrix size from command line */
+  /* Get number of threads and size from command line */
   if (argc != 3) usage(argv[0]);
   input_filename = argv[1];
   output_filename = argv[2];

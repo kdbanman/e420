@@ -56,7 +56,7 @@ int rank(graph_t *graph, double threshold, int total_size)
 double rank_iter(graph_t *graph, int total_size)
 {
 	double new_ranks[graph->node_count];
-	double delta, old_rank, curr_delta;
+	double delta, old_rank, curr_delta, total_rank;
 	int i;
 
 	delta = 0.0;
@@ -77,10 +77,13 @@ double rank_iter(graph_t *graph, int total_size)
 		delta += curr_delta > 0 ? curr_delta : -1.0 * curr_delta;
 	}
 
+	total_rank = 0.0;
 	debug(HIGH, "Copying ranks to graph.\n");
 	for (i = 0; i < graph->node_count; i++) {
 		graph->nodes[i]->rank = new_ranks[i];
+		total_rank += new_ranks[i];
 	}
+	debug(HIGH, "Total graph rank: %f\n", total_rank);
 
 	return delta;
 }
@@ -100,12 +103,13 @@ double rank_node(graph_t *graph, int node_id, int total_size)
 		double src_outgoing_count =
 				src_nbr->outgoing_count != 0 ?
 				(double) src_nbr->outgoing_count :
-				0.0;
+				(double) (total_size - 1);
 
 		rank += src_nbr->rank / src_outgoing_count;
 	}
 
 	rank = (0.15 + (double) total_size * 0.85 * rank) / (double) total_size;
 
+	if (rank < 0.0) printf("INSANITY\n");
 	return rank;
 }
