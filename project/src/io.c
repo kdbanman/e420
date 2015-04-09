@@ -181,3 +181,28 @@ void debug_print_edge_array(int level, edge_t *edges, int size)
 		debug(level + 1, "  src: %4d  dst: %4d\n", edges[i].src, edges[i].dst);
 	}
 }
+
+void debug_print_boundaries(int level, int ***incoming, int **incoming_counts, int ***outgoing, int **outgoing_counts, int num_procs)
+{
+	int proc;
+	for (proc = 0; proc < num_procs; proc++) {
+		debug(level, "----------\n");
+		debug(level, "Boundaries for proc %d:\n", proc);
+		debug_print_proc_boundaries(level, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+	}
+}
+
+void debug_print_proc_boundaries(int level, int **incoming, int *incoming_counts, int **outgoing, int *outgoing_counts, int num_procs)
+{
+	int proc, i;
+	for (proc = 0; proc < num_procs; proc++) {
+		debug(level, "  Target nodes of incoming edges from proc %d:\n", proc);
+		for (i = 0; i < incoming_counts[proc]; i++) {
+		  debug(level, "    %d\n", incoming[proc][i]);
+		}
+		debug(level, "  Source nodes of outgoing edges to proc %d:\n", proc);
+		for (i = 0; i < outgoing_counts[proc]; i++) {
+		  debug(level, "    %d\n", outgoing[proc][i]);
+		}
+}
+}
