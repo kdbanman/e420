@@ -48,12 +48,21 @@ void transform_send_partition(
 		int num_procs);
 
 void send_partition(
-		graph_t *graph,
-		int **nodes,
-		int *node_counts,
-		int **edge_pairs,
-		int *edge_counts,
+		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
+		int *edge_counts,   // lengths of above
+
+		int ***incoming, // each proc: for each proc, targets indexes of
+										 // incoming inter-proc edges. EX: proc 1 from proc 2
+									   // incoming[1][2] = { 4, 4, 5, 7, 10 }
+		int **incoming_counts, // incoming_counts[1][2] = 5
+
+		int ***outgoing, // each proc: for each proc, source indexes of
+										 // outgoing inter-proc edges. EX: proc 1 to proc 2
+										 // incoming[1][2] = { 9, 9, 14 }
+		int **outgoing_counts, // incoming_counts[1][2] = 3
 		int num_procs);
+
+void add_proc_edge(int node_idx, int **proc_buffer, int *count);
 
 void receive_and_save(
 		char *output_filename,
@@ -214,8 +223,18 @@ void transform_send_partition(
 										// edge_pairs[p] = {s_1, t_1, s_2, t_2, ...}
 	int *edge_counts; // length of each array above (2 * E)
 
+	int ***incoming; // each proc: for each proc, targets indexes of
+									 // incoming inter-proc edges. EX: proc 1 from proc 2
+								   // incoming[1][2] = { 4, 4, 5, 7, 10 }
+	int **incoming_counts; // incoming_counts[1][2] = 5
+
+	int ***outgoing; // each proc: for each proc, source indexes of
+									 // outgoing inter-proc edges. EX: proc 1 to proc 2
+									 // incoming[1][2] = { 9, 9, 14 }
+	int **outgoing_counts; // incoming_counts[1][2] = 3
+
 	node_t *node;
-	int proc, curr_size, proc_i, node_idx, tgt_i, tgt_idx;
+	int proc, curr_size, proc_i, proc_node, src_idx, tgt_i, tgt_idx, tgt_proc;
 
 	debug(HIGH, "Allocating for edge pairs arr\n");
 	edge_pairs = (int **) malloc(num_procs * sizeof(int *));
@@ -226,29 +245,54 @@ void transform_send_partition(
 		edge_counts[proc] = 0;
 	}
 
+	debug(HIGH, "Allocating for incoming arrays\n");
+	incoming = (int ***) malloc(num_procs * sizeof(int **));
+	incoming_counts = (int **) malloc(num_procs * sizeof(int *));
+	for (proc = 0; proc < num_procs; proc++) {
+		incoming[proc] = (int **) malloc(num_procs * sizeof(int *));
+		incoming_counts[proc] = (int *) malloc(num_procs * sizeof(int));
+		for (proc_i = 0; proc_i < num_procs; proc_i++) {
+			incoming[proc][proc_i] = (int *) malloc(0);
+			incoming_counts[proc][proc_i] = 0;
+		}
+	}
+
+	debug(HIGH, "Allocating for outgoing arrays\n");
+	outgoing = (int ***) malloc(num_procs * sizeof(int **));
+	outgoing_counts = (int **) malloc(num_procs * sizeof(int *));
+	for (proc = 0; proc < num_procs; proc++) {
+		outgoing[proc] = (int **) malloc(num_procs * sizeof(int *));
+		outgoing_counts[proc] = (int *) malloc(num_procs * sizeof(int));
+		for (proc_i = 0; proc_i < num_procs; proc_i++) {
+			outgoing_counts[proc][proc_i] = 0;
+		}
+	}
+
 	// add an edge from one node to another iff both nodes are in the partition
 	for (proc = 0; proc < num_procs; proc++) {
 
 		debug(HIGH, "Allocating initially for proc %d pairs\n", proc);
 		curr_size = 100;
 		edge_pairs[proc] = (int *) malloc(curr_size * sizeof(int));
-		for (proc_i = 0; proc_i < node_counts[proc]; proc_i++) {
 
-			debug(VERBOSE, "Get node %d for proc %d\n", proc_i, proc);
-			node_idx = nodes[proc][proc_i];
-			node = graph->nodes[node_idx];
+		debug(HIGH, "Populating proc %d edge pairs and proc boundaries (at sources and targets)", proc);
+		for (proc_node = 0; proc_node < node_counts[proc]; proc_node++) { // iterate through partition's nodes
+
+			debug(VERBOSE, "Get node %d for proc %d\n", proc_node, proc);
+			src_idx = nodes[proc][proc_node];
+			node = graph->nodes[src_idx];
 			// need only look through outgoing - edges are doubly-linked
 			for (tgt_i = 0; tgt_i < node->outgoing_count; tgt_i++) {
 				
-				debug(VERBOSE, "Get target  %d for proc %d\n", proc_i, proc);
+				debug(VERBOSE, "Get target  %d for proc %d\n", proc_node, proc);
 				tgt_idx = node->outgoing[tgt_i]->idx;
 
-				debug(VERBOSE, "Test edge between node id %d and %d\n", node_idx, tgt_idx);
-				if (partitions[tgt_idx] == proc) {
+				debug(VERBOSE, "Test edge between node id %d and %d\n", src_idx, tgt_idx);
+				tgt_proc = partitions[tgt_idx];
+				if (tgt_proc == proc) {
 					// both source and target are in proc - add to proc edge_pairs
-
 					debug(VERBOSE, "Target %d is in partition\n", tgt_idx);
-					edge_pairs[proc][edge_counts[proc]] = node_idx;
+					edge_pairs[proc][edge_counts[proc]] = src_idx;
 					edge_pairs[proc][edge_counts[proc] + 1] = tgt_idx;
 
 					edge_counts[proc] += 2;
@@ -257,35 +301,62 @@ void transform_send_partition(
 						curr_size += 1000;
 						edge_pairs[proc] = (int *) realloc(edge_pairs[proc], curr_size * sizeof(int));
 					}
-				}
-			}
-		}
-		// reallocate back down to actual size
-		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
-	}
+				} else {
+					// source is in partition, target elsewhere - add to target partition's incoming edges
+					debug(VERBOSE, "Proc edge found between source proc %d and target proc %d\n", proc, tgt_proc);
 
-	send_partition(graph, nodes, node_counts, edge_pairs, edge_counts, num_procs);
+					debug(VERBOSE, "Old boundaries for source: (%d)\n", proc);
+					debug_print_proc_boundaries(VERBOSE, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+					debug(VERBOSE, "Old boundaries for target: (%d)\n", tgt_proc);
+					debug_print_proc_boundaries(VERBOSE, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
+
+					// add edge target to target proc's incoming and edge source to (source) proc's outgoing
+					debug(VERBOSE, "Adding incoming edge to target proc %d's boundary for proc %d (target node %d)\n", tgt_proc, proc, tgt_idx);
+					add_proc_edge(tgt_idx, &incoming[tgt_proc][proc], &incoming_counts[tgt_proc][proc]);
+					debug(VERBOSE, "Adding outgoing edge to source proc %d's boundary for proc %d (source node %d)\n", proc, tgt_proc, src_idx);
+					add_proc_edge(src_idx, &outgoing[proc][tgt_proc], &outgoing_counts[proc][tgt_proc]);
+
+
+					debug(VERBOSE, "New boundaries for source: (%d)\n", proc);
+					debug_print_proc_boundaries(VERBOSE, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+					debug(VERBOSE, "New boundaries for target: (%d)\n", tgt_proc);
+					debug_print_proc_boundaries(VERBOSE, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
+				}
+			} // end proc node outgoing nbrs loop
+		} // end proc node loop
+		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
+	}  // end proc loop
+
+	send_partition(edge_pairs, edge_counts, incoming, incoming_counts, outgoing, outgoing_counts, num_procs);
 
 }
 
+void add_proc_edge(int node_idx, int **proc_buffer, int *count)
+{
+	*count += 1;
+	debug(VERBOSE, "Resizing proc buffer to %d, %d bytes\n", *count, *count * sizeof(int));
+	*proc_buffer = (int *) realloc((*proc_buffer), *count * sizeof(int));
+  //*proc_buffer = (int *) malloc(*count * sizeof(int));
+
+	debug(VERBOSE, "Appending node %d to buffer.\n", node_idx);
+	(*proc_buffer)[*count - 1] = node_idx;
+}
+
 void send_partition(
-		graph_t *graph,
-		int **nodes,
-		int *node_counts,
-		int **edge_pairs,
-		int *edge_counts,
+		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
+		int *edge_counts,   // lengths of above
+
+		int ***incoming, // each proc: for each proc, targets indexes of
+										 // incoming inter-proc edges. EX: proc 1 from proc 2
+									   // incoming[1][2] = { 4, 4, 5, 7, 10 }
+		int **incoming_counts, // incoming_counts[1][2] = 5
+
+		int ***outgoing, // each proc: for each proc, source indexes of
+										 // outgoing inter-proc edges. EX: proc 1 to proc 2
+										 // outgoing[1][2] = { 9, 9, 14 }
+		int **outgoing_counts, // outgoing_counts[1][2] = 3
 		int num_procs)
 {
-	int ***incoming; // each proc: for each proc, targets indexes of
-	                 // incoming inter-proc edges. EX: proc 1 from proc 2
-	                 // incoming[1][2] = { 4, 4, 5, 7, 10 }
-	int **incoming_counts; // incoming_counts[1][2] = 5
-
-	int ***outgoing; // each proc: for each proc, source indexes of
-		               // outgoing inter-proc edges. EX: proc 1 to proc 2
-		               // incoming[1][2] = { 9, 9, 14 }
-	int **outgoing_counts; // incoming_counts[1][2] = 3
-
 	int proc, nbr_proc;
 
 	for (proc = 0; proc < num_procs; proc++) {
