@@ -155,7 +155,7 @@ problem_size_t * init_cluster(
 	partition_graph_simple(&graph, &nodes, &partitions, part_sizes, num_procs);
 
 	for(proc = 0; proc < num_procs; proc++)
-		debug(HIGH, "Proc %d assigned %d nodes.\n", proc, *part_sizes[proc]);
+		debug(HIGH, "Proc %d assigned %d nodes.\n", proc, (*part_sizes)[proc]);
 
 	// send work (send 1D arrays at a time!  double pointers in loops!)
 	debug(LOW, "Transforming and distributing graph in master...\n");
