@@ -12,6 +12,7 @@
 
 NUM_HOSTS = 5
 NUM_PROCS = 40
+LOCAL_PROCS = 8
 CURRENT_MPI = bin/mpi_rank
 
 SMALL_SIZE = 5500
@@ -37,7 +38,7 @@ bin/graph.o: src/graph.c src/graph.h bin/util.o
 bin/rank_util.o: src/rank_util.c src/rank_util.h bin/util.o bin/graph.o
 	gcc -Wall -Wextra -o bin/rank_util.o -c src/rank_util.c
 
-bin/rank: src/rank.c bin/util.o bin/io.o bin/graph.o bin/rank_util.o
+bin/rank: src/rank.c $(DEPS)
 	gcc -Wall -Wextra -o bin/rank src/rank.c $(DEPS)
 
 run_small: bin/trim bin/rank
@@ -71,8 +72,14 @@ bin/whois: src/whois.c
 run_whois: bin/whois
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/bin/whois
 
-bin/mpi_rank: src/mpi_rank.c bin/util.o bin/io.o bin/graph.o bin/rank_util.o
-	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c
+bin/mpi_rank: src/mpi_rank.c $(DEPS)
+	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c $(DEPS)
+
+run_small_local: $(CURRENT_MPI)
+	# Generate smaller graph
+	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
+	# Calculate
+	mpirun -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/small_out.txt
 
 run_mpi: $(CURRENT_MPI)
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) 
