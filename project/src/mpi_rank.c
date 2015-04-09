@@ -305,10 +305,10 @@ void transform_send_partition(
 					// source is in partition, target elsewhere - add to target partition's incoming edges
 					debug(VERBOSE, "Proc edge found between source proc %d and target proc %d\n", proc, tgt_proc);
 
-					debug(VERBOSE, "Old boundaries for source: (%d)\n", proc);
-					debug_print_proc_boundaries(VERBOSE, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
-					debug(VERBOSE, "Old boundaries for target: (%d)\n", tgt_proc);
-					debug_print_proc_boundaries(VERBOSE, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
+					debug(EXTREME, "Old boundaries for source: (%d)\n", proc);
+					debug_print_proc_boundaries(EXTREME, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+					debug(EXTREME, "Old boundaries for target: (%d)\n", tgt_proc);
+					debug_print_proc_boundaries(EXTREME, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
 
 					// add edge target to target proc's incoming and edge source to (source) proc's outgoing
 					debug(VERBOSE, "Adding incoming edge to target proc %d's boundary for proc %d (target node %d)\n", tgt_proc, proc, tgt_idx);
@@ -317,10 +317,10 @@ void transform_send_partition(
 					add_proc_edge(src_idx, &outgoing[proc][tgt_proc], &outgoing_counts[proc][tgt_proc]);
 
 
-					debug(VERBOSE, "New boundaries for source: (%d)\n", proc);
-					debug_print_proc_boundaries(VERBOSE, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
-					debug(VERBOSE, "New boundaries for target: (%d)\n", tgt_proc);
-					debug_print_proc_boundaries(VERBOSE, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
+					debug(EXTREME, "New boundaries for source: (%d)\n", proc);
+					debug_print_proc_boundaries(EXTREME, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+					debug(EXTREME, "New boundaries for target: (%d)\n", tgt_proc);
+					debug_print_proc_boundaries(EXTREME, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
 				}
 			} // end proc node outgoing nbrs loop
 		} // end proc node loop

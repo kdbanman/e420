@@ -9,6 +9,7 @@
 #define LOW (1)
 #define HIGH (2)
 #define VERBOSE (3)
+#define EXTREME (4)
 
 int io_dbg_lev;
 
