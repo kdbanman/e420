@@ -79,7 +79,7 @@ run_small_local: $(CURRENT_MPI)
 	# Generate smaller graph
 	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	# Calculate
-	mpirun -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/small_out.txt
+	mpirun -v -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/small_out.txt
 
 run_mpi: $(CURRENT_MPI)
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) 
