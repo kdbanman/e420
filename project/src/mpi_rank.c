@@ -86,14 +86,16 @@ int main( int argc, char *argv[] )
 	// local data for each proc
 	int my_rank;
 
-	graph_t my_graph;
-  int **my_incoming, **my_outgoing;
-  int *my_incoming_counts, *my_outgoing_counts;
-
 	MPI_Init( &argc, &argv );
 	MPI_Comm_size( MPI_COMM_WORLD, &num_procs );
 	MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
 	MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+
+
+
+	graph_t my_graph;
+  int **my_incoming, **my_outgoing;
+  int *my_incoming_counts, *my_outgoing_counts;
 
 	io_dbg_lev = atoi(getenv("DEBUG"));
 
@@ -370,7 +372,7 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 {
 	*count += 1;
 	debug(VERBOSE, "Resizing proc buffer to %d, %d bytes\n", *count, *count * sizeof(int));
-	*proc_buffer = (int *) realloc((*proc_buffer), *count * sizeof(int));
+	*proc_buffer =  realloc((*proc_buffer), *count * sizeof(int));
 
 	debug(VERBOSE, "Appending node %d to buffer.\n", node_idx);
 	(*proc_buffer)[*count - 1] = node_idx;

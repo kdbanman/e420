@@ -48,8 +48,8 @@ node_t * node_init(int idx)
   node->idx = idx;
   node->incoming_count = 0;
   node->outgoing_count = 0;
-  node->incoming = NULL;
-  node->outgoing = NULL;
+  node->incoming = malloc(0);
+  node->outgoing = malloc(0);
   node->rank = 0.0;
   
   return node;
@@ -111,7 +111,7 @@ graph_t * graph_init()
 
   graph->node_count = 0;
   graph->edge_count = 0;
-  graph->nodes = NULL;
+  graph->nodes = malloc(0);
 
   return graph;
 }

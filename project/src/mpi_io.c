@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include "io.h"
 #include "mpi_io.h"
 #include "mpi.h"
@@ -172,9 +173,17 @@ void receive_partition_graph(
 	debug(HIGH, "%3d:   Receiving edge pairs\n", my_rank);
 	recv_ints(edge_pairs, edge_count, 0);
 
+	debug(VERBOSE, "%3d: Received edge pairs:\n", my_rank);
+	debug_print_edge_pairs(VERBOSE, edge_pairs, edge_count);
+
 	debug(HIGH, "%3d:   Building graph...\n", my_rank);
 	for (i = 0; i < edge_count; i += 2) {
-		debug(VERBOSE, "%3d:   Adding edge from list idx %d and %d\n", i, i + 1);
+		debug(VERBOSE, "%3d:   Adding edge (%d, %d) from list idx %d and %d\n",
+				my_rank,
+				edge_pairs[i],
+				edge_pairs[i + 1],
+				i,
+				i + 1);
 		graph_add_edge(graph, edge_pairs[i], edge_pairs[i + 1]);
 	}
 
