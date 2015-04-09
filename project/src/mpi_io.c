@@ -27,11 +27,11 @@ void send_partition(
 	req_no = 0;
 	for (proc = 0; proc < num_procs; proc++) {
 		debug(HIGH, "Sending edge count %d to proc %d.\n", edge_counts[proc], proc);
-		isend(&edge_counts[proc], 1, proc, &send_reqs[req_no]);
+		isend_ints(&edge_counts[proc], 1, proc, &send_reqs[req_no]);
 		req_no++;
 
 		debug(HIGH, "Sending edge pairs to proc %d.\n", edge_counts[proc], proc);
-		isend(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[req_no]);
+		isend_ints(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[req_no]);
 		req_no++;
 
 		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
@@ -40,13 +40,13 @@ void send_partition(
 					incoming_counts[proc][nbr_proc],
 					proc,
 					nbr_proc);
-			isend(&incoming_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
+			isend_ints(&incoming_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
 			req_no++;
 
 			debug(VERBOSE, "Sending actual incoming boundary to proc %d for boundary with proc %d.\n",
 								proc,
 								nbr_proc);
-			isend(incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
+			isend_ints(incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 
@@ -56,14 +56,14 @@ void send_partition(
 								outgoing_counts[proc][nbr_proc],
 								proc,
 								nbr_proc);
-			isend(&outgoing_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
+			isend_ints(&outgoing_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
 			req_no++;
 
 			// isend outgoing[proc][nbr_proc] len above
 			debug(VERBOSE, "Sending actual outgoing boundary to proc %d for boundary with proc %d.\n",
 											proc,
 											nbr_proc);
-			isend(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
+			isend_ints(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 	}
@@ -72,7 +72,7 @@ void send_partition(
 }
 
 /*-------------------------------------------------------------------*/
-int isend(
+int isend_ints(
 		int *to_send,
 		int length,
 		int target_rank,
@@ -128,7 +128,7 @@ void receive_partition_boundaries(
 }
 
 /*-------------------------------------------------------------------*/
-int recv(
+int recv_ints(
 		int *recv_buf,
 		int length,
 		int src_rank

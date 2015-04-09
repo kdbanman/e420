@@ -20,7 +20,7 @@ void send_partition(
 		int num_procs);
 
 
-int isend(
+int isend_ints(
 		int *to_send,
 		int length,
 		int target_rank,
@@ -35,7 +35,7 @@ void receive_partition_boundaries(
 //TODO params (by ref)
 		);
 
-int recv(
+int recv_ints(
 		int *recv_buf,
 		int length,
 		int src_rank
