@@ -31,21 +31,24 @@ typedef struct result_ele_t {
 problem_size_t * init_cluster(
 		char *filename,
 		int **part_sizes,
-		int num_procs);
+		int num_procs
+		);
 
 void partition_graph_simple(
 		graph_t *graph,
 		int ***nodes,		      // addr of array[part][idx] = node
 		int **partitions,    // addr of array[node] = part
 		int **node_counts,
-		int num_procs);
+		int num_procs
+		);
 
 void transform_send_partition(
 		graph_t *graph,
 		int **nodes, // array of array[proc][idx] = node
 		int *partitions,  // array of array[node_idx] = proc
 		int *node_counts, // length of each above
-		int num_procs);
+		int num_procs
+		);
 
 void send_partition(
 		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
@@ -60,21 +63,33 @@ void send_partition(
 										 // outgoing inter-proc edges. EX: proc 1 to proc 2
 										 // incoming[1][2] = { 9, 9, 14 }
 		int **outgoing_counts, // incoming_counts[1][2] = 3
-		int num_procs);
+		int num_procs
+		);
 
-void add_proc_edge(int node_idx, int **proc_buffer, int *count);
+void add_proc_edge(
+		int node_idx,
+		int **proc_buffer,
+		int *count
+		);
+
+void receive_partition(
+//TODO params (by ref)
+		);
 
 void receive_and_save(
-		char *output_filename,
-		int *part_sizes,
-		int num_procs);
+//		char *output_filename,
+//		int *part_sizes,
+//		int num_procs
+		);
 
-void sync_rank(graph_t *graph,
-		double threshold,
-		int total_size,
-		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
-		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
-		int num_procs);
+void sync_rank(
+//		graph_t *graph,
+//		double threshold,
+//		int total_size,
+//		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
+//		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
+//		int num_procs
+		);
 
 void usage(char* prog_name);
 
@@ -336,7 +351,6 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 	*count += 1;
 	debug(VERBOSE, "Resizing proc buffer to %d, %d bytes\n", *count, *count * sizeof(int));
 	*proc_buffer = (int *) realloc((*proc_buffer), *count * sizeof(int));
-  //*proc_buffer = (int *) malloc(*count * sizeof(int));
 
 	debug(VERBOSE, "Appending node %d to buffer.\n", node_idx);
 	(*proc_buffer)[*count - 1] = node_idx;
@@ -375,11 +389,30 @@ void send_partition(
 	}
 }
 
+void receive_partition(
+//TODO params (by ref)
+		)
+{
+	// note: all sizes * sizeof(int)
+
+	// recv size num_procs into edge_counts
+	// recv size edge_counts[proc] into edge_pairs[proc]
+
+	// for each proc
+
+		// recv size num_procs into incoming_count[proc]
+		// recv size incoming_count[proc] into incoming[proc]
+
+		// recv size num_procs into outgoing_count[proc]
+		// recv size outgoing_count[proc] into outgoing[proc]
+}
+
 /*-------------------------------------------------------------------*/
 void receive_and_save(
-		char *output_filename,
-		int *part_sizes,
-		int num_procs)
+//		char *output_filename,
+//		int *part_sizes,
+//		int num_procs
+		)
 {
 	// allocate receipt buffers for each proc
 
@@ -389,24 +422,26 @@ void receive_and_save(
 }
 
 /*--------------------------------------------------------------------*/
-void sync_rank(graph_t *graph,
-		double threshold,
-		int total_size,
-		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
-		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
-		int num_procs)
+void sync_rank(
+//		graph_t *graph,
+//		double threshold,
+//		int total_size,
+//		int **out_by_idx, //each proc: array of indices for ranks to send (-1 terminates)
+//		int **in_by_idx, //each proc: array of indices for ranks to recv (-1 terminates)
+//		int num_procs
+		)
 {
-	double delta;
-
-	rank_init(graph, total_size);
-
-	while (delta >= threshold) {
+//	double delta;
+//
+//	rank_init(graph, total_size);
+//
+//	while (delta >= threshold) {
 		// rank iter on local graph
 
 		// receive other rank arrays
 
 		// include other rank arrays
-	}
+//	}
 }
 
 /*-------------------------------------------------------------------*/
