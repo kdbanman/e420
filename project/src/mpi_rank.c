@@ -9,7 +9,7 @@
 int main( int argc, char *argv[] )
 {
     int errs = 0, i, k;
-        int dims[2], periods[2], wsize;
+		int dims[2], periods[2], wsize;
     int outdims[2], outperiods[2], outcoords[2];
     int topo_type;
     int *index, *edges, *outindex, *outedges;
@@ -17,34 +17,6 @@ int main( int argc, char *argv[] )
 
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &wsize );
-
-    /* Create a cartesian topology, get its characteristics, then 
-        dup it and check that the new communicator has the same properties */
-    dims[0] = dims[1] = 0;
-    MPI_Dims_create( wsize, 2, dims );
-    periods[0] = periods[1] = 0;
-    MPI_Cart_create( MPI_COMM_WORLD, 2, dims, periods, 0, &comm1 );
-    MPI_Comm_dup( comm1, &comm2 );
-    MPI_Topo_test( comm2, &topo_type );
-    if (topo_type != MPI_CART) {
-        errs++;
-        printf( "Topo type of duped cart was not cart\n" );fflush(stdout);
-    }
-    else {
-        MPI_Cart_get( comm2, 2, outdims, outperiods, outcoords );
-        for (i=0; i<2; i++) {
-            if (outdims[i] != dims[i]) {
-                errs++;
-                printf( "%d = outdims[%d] != dims[%d] = %d\n", outdims[i], i, i, dims[i] );fflush(stdout);
-            }
-            if (outperiods[i] != periods[i]) {
-                errs++;
-                printf( "%d = outperiods[%d] != periods[%d] = %d\n", outperiods[i], i, i, periods[i] );fflush(stdout);
-            }
-        }
-    }
-    MPI_Comm_free( &comm2 );
-    MPI_Comm_free( &comm1 );
 
     /* Now do the same with a graph topology */
     if (wsize >= 3) {
