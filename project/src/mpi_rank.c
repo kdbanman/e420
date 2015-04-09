@@ -35,13 +35,15 @@ problem_size_t * init_cluster(
 
 void partition_graph_simple(
 		graph_t *graph,
-		int ***nodes,
+		int ***nodes,		      // addr of array[part][idx] = node
+		int **partitions,    // addr of array[node] = part
 		int **node_counts,
 		int num_procs);
 
 void transform_send_partition(
 		graph_t *graph,
-		int **nodes, // array of nodes for each partition
+		int **nodes, // array of array[proc][idx] = node
+		int *partitions,  // array of array[node_idx] = proc
 		int *node_counts, // length of each above
 		int num_procs);
 
@@ -137,7 +139,8 @@ problem_size_t * init_cluster(
 	problem_size_t *prob_size;
 
 	int **nodes; // for each proc, a list of member node indexes
-	int *node_counts; // lengths of above
+	int *partitions; // for each node, the proc it belongs to
+	int proc;
 
 	debug(LOW, "Loading graph in master...\n");
 	load_input(filename, &graph);
@@ -149,27 +152,33 @@ problem_size_t * init_cluster(
 	debug(LOW, "Graph of %d nodes and %d edges loaded.\n", prob_size->nodes, prob_size->edges);
 
 	debug(LOW, "Partitioning graph in master...\n");
-	partition_graph_simple(&graph, &nodes, &node_counts, num_procs);
+	partition_graph_simple(&graph, &nodes, &partitions, part_sizes, num_procs);
 
-	//TODO measure debug mutate part sizes
+	for(proc = 0; proc < num_procs; proc++)
+		debug(HIGH, "Proc %d assigned %d nodes.\n", proc, *part_sizes[proc]);
 
 	// send work (send 1D arrays at a time!  double pointers in loops!)
 	debug(LOW, "Transforming and distributing graph in master...\n");
-  transform_send_partition(&graph, nodes, node_counts, num_procs);
+  transform_send_partition(&graph, nodes, partitions, *part_sizes, num_procs);
 
 	return prob_size;
 }
 
 void partition_graph_simple(
 		graph_t *graph,
-		int ***nodes,
+		int ***nodes,		      // addr of array[part][idx] = node
+		int **partitions,    // addr of array[node] = part
 		int **node_counts,
 		int num_procs)
 {
 	int proc, node, part_len, i;
 	
-	debug(HIGH, "Allocating partition nodes\n");
-  *nodes = (int **) malloc(num_procs * sizeof(int *));
+	debug(HIGH, "Allocating partition to node arr\n");
+	*nodes = (int **) malloc(num_procs * sizeof(int *));
+
+	debug(HIGH, "Allocating node to partition arr\n");
+	*partitions = (int *) malloc(graph->node_count * sizeof(int));
+
 	debug(HIGH, "Allocating partition node sizes\n");
   *node_counts = (int *) malloc(num_procs * sizeof(int));
 
@@ -182,9 +191,10 @@ void partition_graph_simple(
   	debug(VERBOSE, "Allocating for %d assignemnts\n", part_len - node);
   	(*nodes)[proc] = (int *) malloc((part_len - node) * sizeof(int));
     for (i = 0; node < part_len; node++) {
+    	(*partitions)[node] = proc;
     	(*nodes)[proc][i] = node;
-    	i++;
     	(*node_counts)[proc]++;
+    	i++;
     }
     debug(VERBOSE, "%d nodes assigned.\n", (*node_counts)[proc]);
   }
@@ -194,12 +204,15 @@ void partition_graph_simple(
 void transform_send_partition(
 		graph_t *graph,
 		int **nodes, // array of nodes for each partition
+		int *partitions,
 		int *node_counts, // length of each above
 		int num_procs)
 {
 	int **edge_pairs; // edges for each proc
 										// edge_pairs[p] = {s_1, t_1, s_2, t_2, ...}
 	int *edge_counts; // length of each array above (2 * E)
+
+	// add an edge from one node to another iff both nodes are in the partition
 
 
 	send_partition(graph, nodes, node_counts, edge_pairs, edge_counts, num_procs);
