@@ -3,9 +3,6 @@
 #ifndef _MPI_IOH_
 #define _MPI_IOH_
 
-#define SIZE_TAG (1)
-#define BUFFER_TAG (2)
-
 void send_partition(
 		int **edge_pairs,   // array[proc] = [s_1, t_1, s_2, t_2, ...]
 		int *edge_counts,   // lengths of above
@@ -21,10 +18,14 @@ void send_partition(
 		int **outgoing_counts, // outgoing_counts[1][2] = 3
 		int num_procs);
 
+
 int isend(
 		int *to_send,
 		int length,
-		int target_rank);
+		int target_rank,
+		int tag,
+		MPI_Request *request
+		);
 
 void receive_partition_graph(
 		graph_t *graph
