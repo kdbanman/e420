@@ -20,6 +20,10 @@ void send_partition(
 		int num_procs
 		);
 
+void master_wait(
+		MPI_Request *send_reqs,
+		int num_procs
+		);
 
 int isend_ints(
 		int *to_send,
