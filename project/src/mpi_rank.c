@@ -111,14 +111,14 @@ int main( int argc, char *argv[] )
 
 		// master must receive work from self
 		debug(HIGH, "%3d:   Master receiving graph...\n", my_rank);
-		receive_partition_graph(&my_graph);
+		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Master receiving partition...\n", my_rank);
 		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
 
 	} else {
 		debug(HIGH, "%3d:   Proc receiving graph...\n", my_rank);
-		receive_partition_graph(&my_graph);
+		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Proc receiving partition...\n", my_rank);
 		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);

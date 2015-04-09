@@ -33,7 +33,8 @@ int isend_ints(
 		);
 
 void receive_partition_graph(
-//		graph_t *graph
+		graph_t *graph,
+		int my_rank
 		);
 
 void receive_partition_boundaries(

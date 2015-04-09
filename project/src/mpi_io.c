@@ -35,11 +35,6 @@ void send_partition(
 
 	master_wait(send_reqs, num_procs);
 
-	// for proc from 1
-		// send edge pairs
-
-	// wait all recv
-
 	// send to all but self (master == 0)
 	for (proc = 1; proc < num_procs; proc++) {
 		debug(HIGH, "Send edge pairs to proc %d.\n",
@@ -95,9 +90,22 @@ void send_partition(
 //					nbr_proc);
 //			isend_ints(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[proc]);
 //		}
-	}
+//	}
 
 	// send to self
+	debug(HIGH, "Send edge count %d to master self.\n",
+			edge_counts[0],
+			0);
+	isend_ints(&edge_counts[0], 1, 0, &send_reqs[0]);
+
+	int tmp;
+	MPI_Test(send_reqs[0], &tmp, MPI_STATUS_IGNORE);
+
+	debug(HIGH, "Send edge pairs to master self.\n",
+					0);
+	isend_ints(edge_pairs[0], edge_counts[0], 0, &send_reqs[0]);
+	MPI_Test(send_reqs[0], &tmp, MPI_STATUS_IGNORE);
+
 }
 
 void master_wait(
@@ -210,7 +218,7 @@ int recv_ints(
 					);
 
 	MPI_Get_count(&status, MPI_INT, &recvd_length);
-	if (recvd_length != length) {
+	if (recvd_length != length * sizeof(int)) {
 		fprintf(stderr, "Expected to receive %d elements, got %d!", length, recvd_length);
 		return 1;
 	}
