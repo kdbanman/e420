@@ -17,58 +17,95 @@ void send_partition(
 										 // outgoing inter-proc edges. EX: proc 1 to proc 2
 										 // outgoing[1][2] = { 9, 9, 14 }
 		int **outgoing_counts, // outgoing_counts[1][2] = 3
-		int num_procs)
+		int num_procs
+		)
 {
 	int proc, nbr_proc, req_no, num_sends;
-	num_sends = num_procs * num_procs * 2;
 
-	MPI_Request send_reqs[num_sends];
+	MPI_Request send_reqs[num_procs];
 
+	// refactor:  only one send at a time per proc
+
+	// for proc from 1
+		// send edge counts
+
+	// wait all recv
+
+	// for proc from 1
+		// send edge pairs
+
+	// wait all recv
+
+	// then for nbr_proc;
+
+		// for proc from 1;
+			// send incoming count for proc pair
+
+		// wait all recv
+
+		// for proc from 1;
+			// send incoming actual for proc pair
+
+	  // wait all recv
+
+	  //above 6 for outgoing
 	req_no = 0;
 	for (proc = 0; proc < num_procs; proc++) {
-		debug(HIGH, "Sending edge count %d to proc %d.\n", edge_counts[proc], proc);
+		debug(HIGH, "Send %d:  edge count %d to proc %d.\n",
+				req_no,
+				edge_counts[proc],
+				proc);
 		isend_ints(&edge_counts[proc], 1, proc, &send_reqs[req_no]);
 		req_no++;
 
-		debug(HIGH, "Sending edge pairs to proc %d.\n", edge_counts[proc], proc);
+		debug(HIGH, "Send %d:  edge pairs to proc %d.\n",
+				req_no,
+				proc);
 		isend_ints(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[req_no]);
 		req_no++;
 
 		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
-			debug(VERBOSE, "Sending incoming boundary count %d to proc %d for boundary with proc %d.\n",
+			debug(VERBOSE, "Send %d:  incoming boundary count %d to proc %d for boundary with proc %d.\n",
+					req_no,
 					incoming_counts[proc][nbr_proc],
 					proc,
 					nbr_proc);
 			isend_ints(&incoming_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
 			req_no++;
 
-			debug(VERBOSE, "Sending actual incoming boundary to proc %d for boundary with proc %d.\n",
-								proc,
-								nbr_proc);
+			debug(VERBOSE, "Send %d:  actual incoming boundary to proc %d for boundary with proc %d.\n",
+					req_no,
+					proc,
+					nbr_proc);
 			isend_ints(incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 
 		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 			// isend outgoing_counts[proc][nbr_proc]
-			debug(VERBOSE, "Sending outgoing boundary count %d to proc %d for boundary with proc %d.\n",
-								outgoing_counts[proc][nbr_proc],
-								proc,
-								nbr_proc);
+			debug(VERBOSE, "Send %d:  outgoing boundary count %d to proc %d for boundary with proc %d.\n",
+					req_no,
+					outgoing_counts[proc][nbr_proc],
+					proc,
+					nbr_proc);
 			isend_ints(&outgoing_counts[proc][nbr_proc], 1, proc, &send_reqs[req_no]);
 			req_no++;
 
 			// isend outgoing[proc][nbr_proc] len above
-			debug(VERBOSE, "Sending actual outgoing boundary to proc %d for boundary with proc %d.\n",
-											proc,
-											nbr_proc);
+			debug(VERBOSE, "Send %d:  actual outgoing boundary to proc %d for boundary with proc %d.\n",
+					req_no,
+					proc,
+					nbr_proc);
 			isend_ints(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[req_no]);
 			req_no++;
 		}
 	}
 
-	MPI_Waitall(num_sends, send_reqs, MPI_STATUSES_IGNORE);
+	// only wait on ranks that are not the master (probably 0)
+	for (proc = 1; proc < num_procs; proc++) {
+		MPI_Wait(&send_reqs[proc], MPI_STATUS_IGNORE);
+	}
 }
 
 /*-------------------------------------------------------------------*/

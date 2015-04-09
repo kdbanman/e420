@@ -17,7 +17,8 @@ void send_partition(
 										 // outgoing inter-proc edges. EX: proc 1 to proc 2
 										 // outgoing[1][2] = { 9, 9, 14 }
 		int **outgoing_counts, // outgoing_counts[1][2] = 3
-		int num_procs);
+		int num_procs
+		);
 
 
 int isend_ints(

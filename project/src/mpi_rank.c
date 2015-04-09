@@ -95,8 +95,6 @@ int main( int argc, char *argv[] )
 	MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
 	MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
-	GET_TIME(time_start);
-
 	io_dbg_lev = atoi(getenv("DEBUG"));
 
 	/* Get number of threads and size from command line */
@@ -106,27 +104,44 @@ int main( int argc, char *argv[] )
 
 	// if master, distribute work while rest wait
 	if (my_rank == 0) {
+		GET_TIME(time_start);
+
 		prob_size = init_cluster(input_filename, &part_sizes, num_procs);
+
+
+		// master must receive work from self
+		debug(HIGH, "%3d:   Master receiving graph...\n", my_rank);
+		receive_partition_graph(&my_graph);
+
+		debug(HIGH, "%3d:   Master receiving partition...\n", my_rank);
+		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
+
+	} else {
+		debug(HIGH, "%3d:   Proc receiving graph...\n", my_rank);
+		receive_partition_graph(&my_graph);
+
+		debug(HIGH, "%3d:   Proc receiving partition...\n", my_rank);
+		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
+
 	}
+	debug(HIGH, "%3d:   Proc waiting at post-receive boundary...\n", my_rank);
 	MPI_Barrier( MPI_COMM_WORLD );
 
-	// all procs receive work (master sends to self)
-	receive_partition_graph(&my_graph);
-	//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
-
+	debug(HIGH, "%3d:   Proc entering rank procedure...\n", my_rank);
 	synced_rank();
 
 
 	// master receive result array from all (master sends self)
 	if (my_rank == 0) {
 		receive_results_and_save(output_filename, part_sizes, num_procs);
+
+		/* Record end time and report delta. */
+		GET_TIME(time_end);
+		printf("Elapsed time for size %d nodes, %d edges: %5.3fms\n",
+				prob_size->nodes,
+				prob_size->edges,
+				time_end - time_start);
 	}
-	/* Record end time and report delta. */
-	GET_TIME(time_end);
-	printf("Elapsed time for size %d nodes, %d edges: %5.3fms\n",
-			prob_size->nodes,
-			prob_size->edges,
-			time_end - time_start);
 
 	MPI_Finalize();
 	return 0;
@@ -140,7 +155,8 @@ int main( int argc, char *argv[] )
 problem_size_t * init_cluster(
 		char *filename,
 		int **part_sizes,
-		int num_procs)
+		int num_procs
+		)
 {
 	graph_t graph;
 	problem_size_t *prob_size;
@@ -178,7 +194,8 @@ void partition_graph_simple(
 		int ***nodes,		      // addr of array[part][idx] = node
 		int **partitions,    // addr of array[node] = part
 		int **node_counts,
-		int num_procs)
+		int num_procs
+		)
 {
 	int proc, node, part_len, i;
 	
@@ -215,7 +232,8 @@ void transform_send_partition(
 		int **nodes, // array of nodes for each partition
 		int *partitions,
 		int *node_counts, // length of each above
-		int num_procs)
+		int num_procs
+		)
 {
 	int **edge_pairs; // edges for each proc
 										// edge_pairs[p] = {s_1, t_1, s_2, t_2, ...}
@@ -325,7 +343,14 @@ void transform_send_partition(
 		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
 	}  // end proc loop
 
-	send_partition(edge_pairs, edge_counts, incoming, incoming_counts, outgoing, outgoing_counts, num_procs);
+	send_partition(edge_pairs,
+			edge_counts,
+			incoming,
+			incoming_counts,
+			outgoing,
+			outgoing_counts,
+			num_procs
+			);
 
 }
 
