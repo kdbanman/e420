@@ -15,7 +15,7 @@ NUM_PROCS = 40
 LOCAL_PROCS = 8
 CURRENT_MPI = bin/mpi_rank
 
-SMALL_SIZE = 5500
+SMALL_SIZE = 9000
 
 TESTS = $(wildcard test/*)
 

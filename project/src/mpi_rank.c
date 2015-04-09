@@ -311,10 +311,18 @@ void transform_send_partition(
 					edge_pairs[proc][edge_counts[proc]] = src_idx;
 					edge_pairs[proc][edge_counts[proc] + 1] = tgt_idx;
 
+					debug(VERBOSE, "Proc %d's pairs list append: src_idx %d to list pos %d, tgt_idx %d to list pos %d\n",
+							proc,
+							src_idx,
+							edge_counts[proc],
+							tgt_idx,
+							edge_counts[proc] + 1);
+
 					edge_counts[proc] += 2;
 					// reallocate if necessary
 					if (edge_counts[proc] + 2 >= curr_size) {
 						curr_size += 1000;
+						debug(VERBOSE, "Resizing proc %d pairs array to size %d\n", proc, curr_size);
 						edge_pairs[proc] = (int *) realloc(edge_pairs[proc], curr_size * sizeof(int));
 					}
 				} else {
@@ -340,8 +348,12 @@ void transform_send_partition(
 				}
 			} // end proc node outgoing nbrs loop
 		} // end proc node loop
+
+		debug(HIGH, "Finally resizing proc %d pairs array to size %d\n", proc, curr_size);
 		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
 	}  // end proc loop
+
+	debug_print_all_edge_pairs(VERBOSE, edge_pairs, edge_counts, num_procs);
 
 	send_partition(edge_pairs,
 			edge_counts,

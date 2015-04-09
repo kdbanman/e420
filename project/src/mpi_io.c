@@ -216,6 +216,7 @@ int recv_ints(
 					MPI_COMM_WORLD,
 					&status
 					);
+	debug(VERBOSE, "First element of received: %d\n", *recv_buf);
 
 	MPI_Get_count(&status, MPI_INT, &recvd_length);
 	if (recvd_length != length * sizeof(int)) {

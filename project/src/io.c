@@ -173,6 +173,23 @@ void debug_print_graph(int level, graph_t graph)
       debug_print_node(level + 1, *(graph.nodes[i]));
 }
 
+void debug_print_all_edge_pairs(int level, int **edge_pairs, int *edge_counts, int num_procs)
+{
+	int proc;
+	for (proc = 0; proc < num_procs; proc++) {
+		debug(level, "Edge pairs for proc %d:\n", proc);
+		debug_print_edge_pairs(level, edge_pairs[proc], edge_counts[proc]);
+	}
+}
+
+void debug_print_edge_pairs(int level, int *edge_pairs, int edge_count)
+{
+	int i;
+	for (i = 0; i < edge_count - 1; i += 2) {
+		debug(level, "  %4d %4d\n", edge_pairs[i], edge_pairs[i + 1]);
+	}
+}
+
 void debug_print_edge_array(int level, edge_t *edges, int size)
 {
 	int i;
