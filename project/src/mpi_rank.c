@@ -383,7 +383,7 @@ void transform_send_partition(
 				}
 				debug(LOW, "x");
 			} // end proc node outgoing nbrs loop
-			debug(LOW, "-")
+			debug(LOW, "-");
 		} // end proc node loop
 
 		debug(HIGH, "Finally resizing proc %d pairs array to size %d\n", proc, curr_size);
