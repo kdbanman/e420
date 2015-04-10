@@ -100,7 +100,7 @@ run_mpi: $(CURRENT_MPI)
 	
 run_mpi_small: $(CURRENT_MPI) bin/trim
 	# Generate smaller graph
-	bin/trim $(MEM_SIZE) data/full.txt data/small.txt
+	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
 
 clean:

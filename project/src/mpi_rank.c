@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "io.h"
 #include "timer.h"
 #include "rank_util.h"
@@ -78,6 +79,10 @@ int main( int argc, char *argv[] )
 {
 	// problem-global data
 	int num_procs;
+
+  int name_len = 512;
+  char hostname[name_len];
+
 	int *part_sizes;
 	double time_start, time_end, threshold;
 	problem_size_t * prob_size;
@@ -108,6 +113,9 @@ int main( int argc, char *argv[] )
 	if (my_rank == 0) {
 		GET_TIME(time_start);
 
+		gethostname(hostname, name_len - 1);
+
+		debug(LOW, "Master host: %s\n", hostname);
 		prob_size = init_cluster(input_filename, &part_sizes, num_procs);
 
 
