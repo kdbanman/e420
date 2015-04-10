@@ -119,19 +119,23 @@ void send_partition(
 	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
 		// send incoming count for proc pair
-		debug(VERBOSE, "Send incoming boundary count %d to proc %d for boundary with proc %d.\n",
+		debug(VERBOSE, "Send incoming boundary count %d to master self for boundary with proc %d.\n",
 				incoming_counts[0][nbr_proc],
-				0,
 				nbr_proc);
 		isend_ints(&incoming_counts[0][nbr_proc], 1, 0, &send_reqs[0]);
 		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
 
 		// send incoming actual for proc pair
-		debug(VERBOSE, "Send actual incoming boundary to proc %d for boundary with proc %d.\n",
-				0,
-				nbr_proc);
-		isend_ints(incoming[0][nbr_proc], incoming_counts[0][nbr_proc], 0, &send_reqs[0]);
-		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+		proc_pair_incoming_count = incoming_counts[0][nbr_proc];
+		if (proc_pair_incoming_count != 0) {
+			debug(VERBOSE, "Send actual incoming boundary to master self for boundary with proc %d.\n",
+					nbr_proc);
+			isend_ints(incoming[0][nbr_proc], incoming_counts[0][nbr_proc], 0, &send_reqs[0]);
+			MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+		} else {
+			debug(VERBOSE, "Not sending empty incoming boundary to master self for boundary with proc %d.\n",
+					nbr_proc);
+		}
 	}
 
 	// send outgoing boundary data for each proc pair
@@ -146,11 +150,16 @@ void send_partition(
 		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
 
 		// send outgoing actual for proc pair
-		debug(VERBOSE, "Send actual outgoing boundary to proc %d for boundary with proc %d.\n",
-				0,
-				nbr_proc);
-		isend_ints(outgoing[0][nbr_proc], outgoing_counts[0][nbr_proc], 0, &send_reqs[0]);
-		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+		proc_pair_outgoing_count = outgoing_counts[0][nbr_proc];
+		if (proc_pair_outgoing_count != 0) {
+			debug(VERBOSE, "Send actual outgoing boundary to master self for boundary with proc %d.\n",
+					nbr_proc);
+			isend_ints(outgoing[0][nbr_proc], outgoing_counts[0][nbr_proc], 0, &send_reqs[0]);
+			MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+		} else {
+			debug(VERBOSE, "Not sending empty outgoing boundary to master self for boundary with proc %d.\n",
+					nbr_proc);
+		}
 	}
 }
 
@@ -273,7 +282,8 @@ void receive_partition_boundaries(
 			debug(HIGH, "Receiving incoming for nbr proc %d (length %d).\n", proc, incoming_nbr_count);
 			recv_ints((*my_incoming)[proc], incoming_nbr_count, 0);
 		} else {
-			(*my_incoming) = NULL;
+			(*my_incoming)[proc] = NULL;
+			debug(HIGH, "Zero received!\n");
 		}
 
 		// recv size num_procs into outgoing_count[proc]
@@ -290,16 +300,18 @@ void receive_partition_boundaries(
 			recv_ints((*my_outgoing)[proc], outgoing_nbr_count, 0);
 		} else {
 			(*my_outgoing)[proc] = NULL;
+			debug(HIGH, "Zero received!\n");
 		}
-		debug(VERBOSE, "Received proc boundaries:\n");
-		debug_print_proc_boundaries(VERBOSE,
-				my_incoming[proc],
-				my_incoming_counts[proc],
-				my_outgoing[proc],
-				my_incoming_counts[proc],
-				num_procs
-				);
 	}
+
+	debug(VERBOSE, "Received proc boundaries:\n");
+	debug_print_proc_boundaries(VERBOSE,
+			*my_incoming,
+			*my_incoming_counts,
+			*my_outgoing,
+			*my_outgoing_counts,
+			num_procs
+			);
 }
 
 /*-------------------------------------------------------------------*/
@@ -324,7 +336,7 @@ int recv_ints(
 
 	MPI_Get_count(&status, MPI_INT, &recvd_length);
 	if (recvd_length != length) {
-		fprintf(stderr, "Expected to receive %d elements, got %d!", length, recvd_length);
+		printf("Expected to receive %d elements, got %d!", length, recvd_length);
 		return 1;
 	}
 	return 0;

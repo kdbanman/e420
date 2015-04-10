@@ -213,11 +213,11 @@ void debug_print_proc_boundaries(int level, int **incoming, int *incoming_counts
 {
 	int proc, i;
 	for (proc = 0; proc < num_procs; proc++) {
-		debug(level, "  Target nodes of incoming edges from proc %d:\n", proc);
+		debug(level, "  Target nodes of incoming edges from proc %d (length %d):\n", proc, incoming_counts[proc]);
 		for (i = 0; i < incoming_counts[proc]; i++) {
 		  debug(level, "    %d\n", incoming[proc][i]);
 		}
-		debug(level, "  Source nodes of outgoing edges to proc %d:\n", proc);
+		debug(level, "  Source nodes of outgoing edges to proc %d (length %d):\n", proc, outgoing_counts[proc]);
 		for (i = 0; i < outgoing_counts[proc]; i++) {
 		  debug(level, "    %d\n", outgoing[proc][i]);
 		}

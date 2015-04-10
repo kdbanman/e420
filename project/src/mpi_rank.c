@@ -116,7 +116,8 @@ int main( int argc, char *argv[] )
 		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Master receiving partition...\n", my_rank);
-		receive_partition_boundaries(&my_incoming,
+		receive_partition_boundaries(
+				&my_incoming,
 				&my_incoming_counts,
 				&my_outgoing,
 				&my_outgoing_counts,
@@ -127,7 +128,8 @@ int main( int argc, char *argv[] )
 		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Proc receiving partition...\n", my_rank);
-		receive_partition_boundaries(&my_incoming,
+		receive_partition_boundaries(
+				&my_incoming,
 				&my_incoming_counts,
 				&my_outgoing,
 				&my_outgoing_counts,
