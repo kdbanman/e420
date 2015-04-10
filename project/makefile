@@ -98,9 +98,7 @@ mem_small_local: $(CURRENT_MPI) bin/trim
 run_mpi: $(CURRENT_MPI)
 	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/full_out.txt
 	
-run_mpi_small: $(CURRENT_MPI) bin/trim
-	# Generate smaller graph
-	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
+run_mpi_small: $(CURRENT_MPI)
 	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
 
 clean:
