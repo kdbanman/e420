@@ -153,6 +153,8 @@ int main( int argc, char *argv[] )
 				&my_outgoing_counts,
 				num_procs);
 
+		prob_size = (problem_size_t *) malloc(sizeof(problem_size_t));
+
 		// recv nodes then recv edges prob_size to all...
 		debug(HIGH, "%3d:   Receiving node count...\n", my_rank);
 		recv_ints(&(prob_size->nodes), 1, 0);

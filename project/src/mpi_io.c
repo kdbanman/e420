@@ -197,13 +197,11 @@ void master_wait(
 
 	// only wait on ranks that are not the master (probably 0)
 	for (proc = 1; proc < num_procs; proc++) {
-		debug(HIGH, "Waiting on proc %d...\n", proc);
+		debug(HIGH, "Waiting on proc %d...", proc);
 		if (send_reqs[proc] != NULL)
 			MPI_Wait(&send_reqs[proc], MPI_STATUS_IGNORE);
-		debug(HIGH, "Done waiting on proc %d.\n", proc);
-
 		debug(LOW, ".");
-		debug(HIGH, "\n");
+		debug(HIGH, "\nDone waiting on proc %d.\n", proc);
 	}
 }
 
@@ -347,6 +345,7 @@ int recv_ints(
 	int recvd_length;
 	MPI_Status status;
 
+	debug(VERBOSE, "Receiving to address 0x%x, current contents %d\n...", recv_buf, *recv_buf);
 	MPI_Recv(recv_buf,
 					length,
 					MPI_INT,
