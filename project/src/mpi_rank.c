@@ -65,14 +65,14 @@ void add_proc_edge(
 		);
 
 void synced_rank(
-		graph_t *graph,
-		double threshold,
-		int total_size,
-		int **incoming, //each proc: array of indices for ranks to recv
-    int *incoming_counts,
-		int **outgoing, //each proc: array of indices for ranks to send
-    int *outgoing_counts,
-		int num_procs
+//		graph_t *graph,
+//		double threshold,
+//		int total_size,
+//		int **incoming, //each proc: array of indices for ranks to recv
+//    int *incoming_counts,
+//		int **outgoing, //each proc: array of indices for ranks to send
+//    int *outgoing_counts,
+//		int num_procs
 		);
 
 void usage(char* prog_name);
@@ -149,18 +149,17 @@ int main( int argc, char *argv[] )
 				num_procs);
 
 	}
-
 	//TODO send prob_size to all...
-	debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
+	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
-			&my_graph,
-			threshold,
-			prob_size->nodes,
-			my_incoming,
-			my_incoming_counts,
-			my_outgoing,
-			my_outgoing_counts,
-			num_procs
+//			&my_graph,
+//			threshold,
+//			prob_size->nodes,
+//			my_incoming,
+//			my_incoming_counts,
+//			my_outgoing,
+//			my_outgoing_counts,
+//			num_procs
 			);
 
 
@@ -436,14 +435,14 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 
 /*--------------------------------------------------------------------*/
 void synced_rank(
-		graph_t *graph,
-		double threshold,
-		int total_size,
-		int **incoming, //each proc: array of indices for ranks to recv
-    int *incoming_counts,
-		int **outgoing, //each proc: array of indices for ranks to send
-    int *outgoing_counts,
-		int num_procs
+//		graph_t *graph,
+//		double threshold,
+//		int total_size,
+//		int **incoming, //each proc: array of indices for ranks to recv
+//    int *incoming_counts,
+//		int **outgoing, //each proc: array of indices for ranks to send
+//    int *outgoing_counts,
+//		int num_procs
 		)
 {
 //	double delta;
