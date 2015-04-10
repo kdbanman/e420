@@ -13,6 +13,12 @@
 #include "mpi.h"
 
 /**********************
+ *              GLOBALS
+ */
+
+double threshold = 1E-5;
+
+/**********************
  *                 DATA
  */
 
@@ -59,14 +65,14 @@ void add_proc_edge(
 		);
 
 void synced_rank(
-//		graph_t *graph,
-//		double threshold,
-//		int total_size,
-//		int **incoming, //each proc: array of indices for ranks to recv
-//    int *incoming_counts,
-//		int **outgoing, //each proc: array of indices for ranks to send
-//    int *outgoing_counts,
-//		int num_procs
+		graph_t *graph,
+		double threshold,
+		int total_size,
+		int **incoming, //each proc: array of indices for ranks to recv
+    int *incoming_counts,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
 		);
 
 void usage(char* prog_name);
@@ -80,14 +86,6 @@ int main( int argc, char *argv[] )
 	// problem-global data
 	int num_procs;
 
-  int name_len = 512;
-  char hostname[name_len];
-
-	int *part_sizes;
-	double time_start, time_end, threshold;
-	problem_size_t * prob_size;
-	char *input_filename, *output_filename;
-
 	// local data for each proc
 	int my_rank;
 
@@ -97,8 +95,15 @@ int main( int argc, char *argv[] )
 	MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
 
+  int name_len = 512;
+  char hostname[name_len];
+
+	int *part_sizes;
+	double time_start, time_end;
+	char *input_filename, *output_filename;
 
 	graph_t my_graph;
+	problem_size_t * prob_size;
   int **my_incoming, **my_outgoing;
   int *my_incoming_counts, *my_outgoing_counts;
 
@@ -144,11 +149,19 @@ int main( int argc, char *argv[] )
 				num_procs);
 
 	}
-	debug(HIGH, "%3d:   Proc waiting at post-receive boundary...\n", my_rank);
-	MPI_Barrier( MPI_COMM_WORLD );
 
-	debug(LOW, "%3d:   Proc entering rank procedure...\n", my_rank);
-	synced_rank();
+	//TODO send prob_size to all...
+	debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
+	synced_rank(
+			&my_graph,
+			threshold,
+			prob_size->nodes,
+			my_incoming,
+			my_incoming_counts,
+			my_outgoing,
+			my_outgoing_counts,
+			num_procs
+			);
 
 
 	// master receive result array from all (master sends self)
@@ -423,14 +436,14 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 
 /*--------------------------------------------------------------------*/
 void synced_rank(
-//		graph_t *graph,
-//		double threshold,
-//		int total_size,
-//		int **incoming, //each proc: array of indices for ranks to recv
-//    int *incoming_counts,
-//		int **outgoing, //each proc: array of indices for ranks to send
-//    int *outgoing_counts,
-//		int num_procs
+		graph_t *graph,
+		double threshold,
+		int total_size,
+		int **incoming, //each proc: array of indices for ranks to recv
+    int *incoming_counts,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
 		)
 {
 //	double delta;
