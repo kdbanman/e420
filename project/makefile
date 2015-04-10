@@ -10,7 +10,7 @@
 #    compile, run, and test lab program and all support programs
 #
 
-DEBUG_LEV = 1
+DEBUG_LEV = 2
 
 NUM_HOSTS = 5
 NUM_PROCS = 5
@@ -19,6 +19,7 @@ CURRENT_MPI = bin/mpi_rank
 
 MPI_SUPPR = /usr/share/openmpi/openmpi-valgrind.supp
 
+SIZE = 20000
 SMALL_SIZE = 9000
 MEM_SIZE = 5500
 
@@ -50,10 +51,10 @@ run_small: bin/trim bin/rank
 	# Generate smaller graph
 	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	# Calculate result
-	bin/rank data/small.txt data/small_out.txt
+	DEBUG=$(DEBUG_LEV) bin/rank data/small.txt data/data_output
 
 run_full: bin/trim bin/rank
-	bin/rank data/full.txt data/full_out.txt
+	DEBUG=$(DEBUG_LEV) bin/rank data/full.txt data/data_output
 
 # MPI cluster deployment
 #
@@ -69,7 +70,7 @@ hostfile:
 	cat data/hostfile.txt
 
 hosts:
-	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) $(SMALL_SIZE); done
+	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) $(SIZE); done
 
 bin/whois: src/whois.c
 	mpicc -o bin/whois src/whois.c
@@ -87,19 +88,19 @@ run_small_local: $(CURRENT_MPI) bin/trim
 	# Generate smaller graph
 	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	# Calculate
-	mpirun -v -output-filename out.log -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/small_out.txt
+	DEBUG=$(DEBUG_LEV) mpirun -v -output-filename out.log -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/data_output
 
 mem_small_local: $(CURRENT_MPI) bin/trim
 	# Generate smaller graph
 	bin/trim $(MEM_SIZE) data/full.txt data/small.txt
 	# Calculate
-	mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind --suppressions=$(MPI_SUPPR) $(CURRENT_MPI) data/small.txt data/small_out.txt
+	DEBUG=$(DEBUG_LEV) mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind --suppressions=$(MPI_SUPPR) $(CURRENT_MPI) data/small.txt data/data_output
 
-run_mpi: $(CURRENT_MPI)
-	DEBUG_LEV=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/full_out.txt
+run_mpi_full: $(CURRENT_MPI)
+	DEBUG=$(DEBUG_LEV) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/data_output
 	
-run_mpi_small: $(CURRENT_MPI)
-	DEBUG_LEV=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
+run_mpi: $(CURRENT_MPI)
+	DEBUG=$(DEBUG_LEV) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/data_output
 
 clean:
 	rm -rf bin/*
