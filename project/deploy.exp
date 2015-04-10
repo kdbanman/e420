@@ -36,8 +36,10 @@ send -- "git pull\r"
 expect "*?$ "
 send -- "make $maker\r"
 expect "*?$ "
+send -- "make bin/trim\r"
+expect "*?$ "
 send -- "bin/trim $size data/full.txt data/small.txt\r"
 
-# After make exit
+# After final exit
 expect "*?$ "
 send -- "exit\r"
