@@ -381,9 +381,7 @@ void transform_send_partition(
 					debug(EXTREME, "New boundaries for target: (%d)\n", tgt_proc);
 					debug_print_proc_boundaries(EXTREME, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
 				}
-				debug(LOW, "x");
 			} // end proc node outgoing nbrs loop
-			debug(LOW, "-");
 		} // end proc node loop
 
 		debug(HIGH, "Finally resizing proc %d pairs array to size %d\n", proc, curr_size);

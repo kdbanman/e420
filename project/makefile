@@ -10,7 +10,7 @@
 #    compile, run, and test lab program and all support programs
 #
 
-DEBUG = 1
+DEBUG_LEV = 1
 
 NUM_HOSTS = 5
 NUM_PROCS = 5
@@ -96,10 +96,10 @@ mem_small_local: $(CURRENT_MPI) bin/trim
 	mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind --suppressions=$(MPI_SUPPR) $(CURRENT_MPI) data/small.txt data/small_out.txt
 
 run_mpi: $(CURRENT_MPI)
-	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/full_out.txt
+	DEBUG_LEV=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/full_out.txt
 	
 run_mpi_small: $(CURRENT_MPI)
-	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
+	DEBUG_LEV=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
 
 clean:
 	rm -rf bin/*
