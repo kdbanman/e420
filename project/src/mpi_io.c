@@ -135,7 +135,7 @@ int isend_ints(
 	int ierr;
 
 	ierr = MPI_Isend(to_send,
-					length * sizeof(int),
+					length,
 					MPI_INT,
 					target_rank,
 					0, // tag unused
@@ -218,7 +218,7 @@ int recv_ints(
 	MPI_Status status;
 
 	MPI_Recv(recv_buf,
-					length * sizeof(int),
+					length,
 					MPI_INT,
 					src_rank,
 					0, // tag unused
@@ -228,7 +228,7 @@ int recv_ints(
 	debug(VERBOSE, "First element of received: %d\n", *recv_buf);
 
 	MPI_Get_count(&status, MPI_INT, &recvd_length);
-	if (recvd_length != length * sizeof(int)) {
+	if (recvd_length != length) {
 		fprintf(stderr, "Expected to receive %d elements, got %d!", length, recvd_length);
 		return 1;
 	}

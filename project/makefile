@@ -15,7 +15,10 @@ NUM_PROCS = 40
 LOCAL_PROCS = 8
 CURRENT_MPI = bin/mpi_rank
 
+MPI_SUPPR = /usr/share/openmpi/openmpi-valgrind.supp
+
 SMALL_SIZE = 9000
+MEM_SIZE = 5500
 
 TESTS = $(wildcard test/*)
 
@@ -86,9 +89,9 @@ run_small_local: $(CURRENT_MPI)
 
 mem_small_local: $(CURRENT_MPI)
 	# Generate smaller graph
-	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
+	bin/trim $(MEM_SIZE) data/full.txt data/small.txt
 	# Calculate
-	DEBUG=3 mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind $(CURRENT_MPI) data/small.txt data/small_out.txt
+	DEBUG=3 mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind --suppressions=$(MPI_SUPPR) $(CURRENT_MPI) data/small.txt data/small_out.txt
 
 run_mpi: $(CURRENT_MPI)
 	mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) 
