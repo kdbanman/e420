@@ -174,6 +174,20 @@ void send_partition(
 	debug(LOW, "Sending complete\n");
 }
 
+void master_send_int(
+		int *to_send,
+		int num_procs
+		)
+{
+	int proc;
+	MPI_Request send_reqs[num_procs];
+
+	for (proc = 1; proc < num_procs; proc++) {
+		isend_ints(to_send, 1, proc, &send_reqs[proc]);
+	}
+	master_wait(&send_reqs, num_procs);
+}
+
 void master_wait(
 		MPI_Request *send_reqs,
 		int num_procs
@@ -189,6 +203,7 @@ void master_wait(
 		debug(HIGH, "Done waiting on proc %d.\n", proc);
 
 		debug(LOW, ".");
+		debug(HIGH, "\n");
 	}
 }
 
@@ -269,11 +284,6 @@ void receive_partition_boundaries(
 		)
 {
 	int proc, incoming_nbr_count, outgoing_nbr_count;
-//
-//	int *incoming_counts = *my_incoming_counts;
-//	int **incoming = *my_incoming;
-//	int *outgoing_counts = *my_outgoing_counts;
-//	int **outgoing = *my_outgoing;
 
 	*my_incoming_counts = (int *) malloc(num_procs * sizeof(int));
 	*my_outgoing_counts = (int *) malloc(num_procs * sizeof(int));

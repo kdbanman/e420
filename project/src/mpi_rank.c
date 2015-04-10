@@ -136,6 +136,11 @@ int main( int argc, char *argv[] )
 				&my_outgoing_counts,
 				num_procs);
 
+		debug(HIGH, "%3d:   Master sending node count %d\n", my_rank, prob_size->nodes);
+		master_send_int(&(prob_size->nodes), num_procs);
+		debug(HIGH, "%3d:   Master sending edge count %d\n", my_rank, prob_size->edges);
+		master_send_int(&(prob_size->edges), num_procs);
+
 	} else {
 		debug(LOW, "%3d:   Proc receiving graph...\n", my_rank);
 		receive_partition_graph(&my_graph, my_rank);
@@ -148,8 +153,16 @@ int main( int argc, char *argv[] )
 				&my_outgoing_counts,
 				num_procs);
 
+		// recv nodes then recv edges prob_size to all...
+		debug(HIGH, "%3d:   Receiving node count...\n", my_rank);
+		recv_ints(&(prob_size->nodes), 1, 0);
+		debug(HIGH, "%3d:   Received node count %d...\n", my_rank, prob_size->nodes);
+
+		debug(HIGH, "%3d:   Receiving edge count...\n", my_rank);
+		recv_ints(&(prob_size->edges), 1, 0);
+		debug(HIGH, "%3d:   Received edge count %d...\n", my_rank, prob_size->edges);
 	}
-	//TODO send prob_size to all...
+
 	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
 //			&my_graph,

@@ -25,6 +25,11 @@ void master_wait(
 		int num_procs
 		);
 
+void master_send_int(
+		int *to_send,
+		int num_procs
+		);
+
 int isend_ints(
 		int *to_send,
 		int length,
