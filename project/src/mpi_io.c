@@ -25,6 +25,7 @@ void send_partition(
 
 	MPI_Request send_reqs[num_procs];
 
+	debug(LOW, "Sending edge counts");
 	// send to all but self (master == 0)
 	for (proc = 1; proc < num_procs; proc++) {
 		debug(HIGH, "Send edge count %d to proc %d.\n",
@@ -33,7 +34,9 @@ void send_partition(
 		isend_ints(&edge_counts[proc], 1, proc, &send_reqs[proc]);
 	}
 	master_wait(send_reqs, num_procs);
+	debug(LOW, "\n");
 
+	debug(LOW, "Sending edge arrays");
 	// send to all but self (master == 0)
 	for (proc = 1; proc < num_procs; proc++) {
 		debug(HIGH, "Send edge pairs to proc %d.\n",
@@ -41,8 +44,10 @@ void send_partition(
 		isend_ints(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[proc]);
 	}
 	master_wait(send_reqs, num_procs);
+	debug(LOW, "\n");
 
 	// send incoming and outgoing boundary data for each proc pair
+	debug(LOW, "Sending boundary data");
 	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
 		for (proc = 1; proc < num_procs; proc++) {
@@ -102,6 +107,10 @@ void send_partition(
 		}
 		master_wait(send_reqs, num_procs);
 	}
+	debug(LOW, "\n");
+
+
+	debug(LOW, "Sending master data to self\n");
 
 	// send to self
 	debug(HIGH, "Send edge count %d to master self.\n",
@@ -161,6 +170,8 @@ void send_partition(
 					nbr_proc);
 		}
 	}
+
+	debug(LOW, "Sending complete\n");
 }
 
 void master_wait(
@@ -176,6 +187,8 @@ void master_wait(
 		if (send_reqs[proc] != NULL)
 			MPI_Wait(&send_reqs[proc], MPI_STATUS_IGNORE);
 		debug(HIGH, "Done waiting on proc %d.\n", proc);
+
+		debug(LOW, ".");
 	}
 }
 

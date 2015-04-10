@@ -112,10 +112,10 @@ int main( int argc, char *argv[] )
 
 
 		// master must receive work from self
-		debug(HIGH, "%3d:   Master receiving graph...\n", my_rank);
+		debug(LOW, "%3d:   Master receiving graph...\n", my_rank);
 		receive_partition_graph(&my_graph, my_rank);
 
-		debug(HIGH, "%3d:   Master receiving partition...\n", my_rank);
+		debug(LOW, "%3d:   Master receiving partition...\n", my_rank);
 		receive_partition_boundaries(
 				&my_incoming,
 				&my_incoming_counts,
@@ -124,10 +124,10 @@ int main( int argc, char *argv[] )
 				num_procs);
 
 	} else {
-		debug(HIGH, "%3d:   Proc receiving graph...\n", my_rank);
+		debug(LOW, "%3d:   Proc receiving graph...\n", my_rank);
 		receive_partition_graph(&my_graph, my_rank);
 
-		debug(HIGH, "%3d:   Proc receiving partition...\n", my_rank);
+		debug(LOW, "%3d:   Proc receiving partition...\n", my_rank);
 		receive_partition_boundaries(
 				&my_incoming,
 				&my_incoming_counts,
@@ -139,7 +139,7 @@ int main( int argc, char *argv[] )
 	debug(HIGH, "%3d:   Proc waiting at post-receive boundary...\n", my_rank);
 	MPI_Barrier( MPI_COMM_WORLD );
 
-	debug(HIGH, "%3d:   Proc entering rank procedure...\n", my_rank);
+	debug(LOW, "%3d:   Proc entering rank procedure...\n", my_rank);
 	synced_rank();
 
 
@@ -295,6 +295,7 @@ void transform_send_partition(
 	}
 
 	// add an edge from one node to another iff both nodes are in the partition
+	debug(LOW, "Transforming partition.");
 	for (proc = 0; proc < num_procs; proc++) {
 
 		debug(HIGH, "Allocating initially for proc %d pairs\n", proc);
@@ -377,10 +378,14 @@ void transform_send_partition(
 
 		debug(HIGH, "Finally resizing proc %d pairs array to size %d\n", proc, curr_size);
 		edge_pairs[proc] = (int *) realloc(edge_pairs[proc], edge_counts[proc] * sizeof(int));
+
+		debug(LOW, ".");
 	}  // end proc loop
+	debug(LOW, "\n");
 
 	debug_print_all_edge_pairs(VERBOSE, edge_pairs, edge_counts, num_procs);
 
+	debug(LOW, "Distributing partition in main.\n");
 	send_partition(edge_pairs,
 			edge_counts,
 			incoming,
