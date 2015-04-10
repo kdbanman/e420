@@ -116,14 +116,22 @@ int main( int argc, char *argv[] )
 		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Master receiving partition...\n", my_rank);
-		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
+		receive_partition_boundaries(&my_incoming,
+				&my_incoming_counts,
+				&my_outgoing,
+				&my_outgoing_counts,
+				num_procs);
 
 	} else {
 		debug(HIGH, "%3d:   Proc receiving graph...\n", my_rank);
 		receive_partition_graph(&my_graph, my_rank);
 
 		debug(HIGH, "%3d:   Proc receiving partition...\n", my_rank);
-		//TODO receive_partition_boundaries(&my_incoming, &my_incoming_counts, &my_outgoing, &my_outgoing_counts);
+		receive_partition_boundaries(&my_incoming,
+				&my_incoming_counts,
+				&my_outgoing,
+				&my_outgoing_counts,
+				num_procs);
 
 	}
 	debug(HIGH, "%3d:   Proc waiting at post-receive boundary...\n", my_rank);

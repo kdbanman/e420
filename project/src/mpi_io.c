@@ -21,7 +21,7 @@ void send_partition(
 		int num_procs
 		)
 {
-	int proc, nbr_proc;
+	int proc, nbr_proc, proc_pair_incoming_count, proc_pair_outgoing_count, tmp;
 
 	MPI_Request send_reqs[num_procs];
 
@@ -32,8 +32,6 @@ void send_partition(
 				proc);
 		isend_ints(&edge_counts[proc], 1, proc, &send_reqs[proc]);
 	}
-
-
 	master_wait(send_reqs, num_procs);
 
 	// send to all but self (master == 0)
@@ -42,71 +40,118 @@ void send_partition(
 						proc);
 		isend_ints(edge_pairs[proc], edge_counts[proc], proc, &send_reqs[proc]);
 	}
-
 	master_wait(send_reqs, num_procs);
 
-	// then for nbr_proc;
+	// send incoming and outgoing boundary data for each proc pair
+	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
-		// for proc from 1;
+		for (proc = 1; proc < num_procs; proc++) {
 			// send incoming count for proc pair
+			debug(VERBOSE, "Send incoming boundary count %d to proc %d for boundary with proc %d.\n",
+					incoming_counts[proc][nbr_proc],
+					proc,
+					nbr_proc);
+			isend_ints(&incoming_counts[proc][nbr_proc], 1, proc, &send_reqs[proc]);
+		}
+		master_wait(send_reqs, num_procs);
 
-		// wait all recv
-
-		// for proc from 1;
+		for (proc = 1; proc < num_procs; proc++) {
 			// send incoming actual for proc pair
+			proc_pair_incoming_count = incoming_counts[proc][nbr_proc];
+			if (proc_pair_incoming_count != 0) {
+				debug(VERBOSE, "Send actual incoming boundary to proc %d for boundary with proc %d.\n",
+						proc,
+						nbr_proc);
+				isend_ints(incoming[proc][nbr_proc], proc_pair_incoming_count, proc, &send_reqs[proc]);
+			} else {
+				debug(VERBOSE, "Not sending empty incoming boundary  to proc %d for boundary with proc %d.\n",
+						proc,
+						nbr_proc);
+				send_reqs[proc] = NULL;
+			}
+		}
+		master_wait(send_reqs, num_procs);
+	}
 
-	  // wait all recv
+	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
-	  //above 6 comments for outgoing
+		for (proc = 1; proc < num_procs; proc++) {
+			// send outgoing count for proc pair
+			debug(VERBOSE, "Send outgoing boundary count %d to proc %d for boundary with proc %d.\n",
+					outgoing_counts[proc][nbr_proc],
+					proc,
+					nbr_proc);
+			isend_ints(&outgoing_counts[proc][nbr_proc], 1, proc, &send_reqs[proc]);
+		}
+		master_wait(send_reqs, num_procs);
 
-//	for (proc = 0; proc < num_procs; proc++) {
-//
-//
-//
-//		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
-//
-//			debug(VERBOSE, "Send incoming boundary count %d to proc %d for boundary with proc %d.\n",
-//					incoming_counts[proc][nbr_proc],
-//					proc,
-//					nbr_proc);
-//			isend_ints(&incoming_counts[proc][nbr_proc], 1, proc, &send_reqs[proc]);
-//
-//			debug(VERBOSE, "Send actual incoming boundary to proc %d for boundary with proc %d.\n",
-//					proc,
-//					nbr_proc);
-//			isend_ints(incoming[proc][nbr_proc], incoming_counts[proc][nbr_proc], proc, &send_reqs[proc]);
-//		}
-//
-//		for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
-//			// isend outgoing_counts[proc][nbr_proc]
-//			debug(VERBOSE, "Send outgoing boundary count %d to proc %d for boundary with proc %d.\n",
-//					outgoing_counts[proc][nbr_proc],
-//					proc,
-//					nbr_proc);
-//			isend_ints(&outgoing_counts[proc][nbr_proc], 1, proc, &send_reqs[proc]);
-//
-//			// isend outgoing[proc][nbr_proc] len above
-//			debug(VERBOSE, "Send actual outgoing boundary to proc %d for boundary with proc %d.\n",
-//					proc,
-//					nbr_proc);
-//			isend_ints(outgoing[proc][nbr_proc], outgoing_counts[proc][nbr_proc], proc, &send_reqs[proc]);
-//		}
-//	}
+		for (proc = 1; proc < num_procs; proc++) {
+			// send outgoing actual for proc pair
+			proc_pair_outgoing_count = outgoing_counts[proc][nbr_proc];
+			if (proc_pair_outgoing_count != 0) {
+				debug(VERBOSE, "Send actual outgoing boundary to proc %d for boundary with proc %d.\n",
+						proc,
+						nbr_proc);
+				isend_ints(outgoing[proc][nbr_proc], proc_pair_outgoing_count, proc, &send_reqs[proc]);
+			} else {
+				debug(VERBOSE, "Not sending empty outgoing boundary  to proc %d for boundary with proc %d.\n",
+						proc,
+						nbr_proc);
+				send_reqs[proc] = NULL;
+			}
+		}
+		master_wait(send_reqs, num_procs);
+	}
 
 	// send to self
 	debug(HIGH, "Send edge count %d to master self.\n",
 			edge_counts[0],
 			0);
 	isend_ints(&edge_counts[0], 1, 0, &send_reqs[0]);
-
-	int tmp;
-	MPI_Test(send_reqs[0], &tmp, MPI_STATUS_IGNORE);
+	MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
 
 	debug(HIGH, "Send edge pairs to master self.\n",
 					0);
 	isend_ints(edge_pairs[0], edge_counts[0], 0, &send_reqs[0]);
-	MPI_Test(send_reqs[0], &tmp, MPI_STATUS_IGNORE);
+	MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
 
+	// send incoming boundary data for each proc pair
+	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
+
+		// send incoming count for proc pair
+		debug(VERBOSE, "Send incoming boundary count %d to proc %d for boundary with proc %d.\n",
+				incoming_counts[0][nbr_proc],
+				0,
+				nbr_proc);
+		isend_ints(&incoming_counts[0][nbr_proc], 1, 0, &send_reqs[0]);
+		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+
+		// send incoming actual for proc pair
+		debug(VERBOSE, "Send actual incoming boundary to proc %d for boundary with proc %d.\n",
+				0,
+				nbr_proc);
+		isend_ints(incoming[0][nbr_proc], incoming_counts[0][nbr_proc], 0, &send_reqs[0]);
+		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+	}
+
+	// send outgoing boundary data for each proc pair
+	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
+
+		// send outgoing count for proc pair
+		debug(VERBOSE, "Send outgoing boundary count %d to proc %d for boundary with proc %d.\n",
+				outgoing_counts[0][nbr_proc],
+				0,
+				nbr_proc);
+		isend_ints(&outgoing_counts[0][nbr_proc], 1, 0, &send_reqs[0]);
+		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+
+		// send outgoing actual for proc pair
+		debug(VERBOSE, "Send actual outgoing boundary to proc %d for boundary with proc %d.\n",
+				0,
+				nbr_proc);
+		isend_ints(outgoing[0][nbr_proc], outgoing_counts[0][nbr_proc], 0, &send_reqs[0]);
+		MPI_Test(send_reqs, &tmp, MPI_STATUS_IGNORE);
+	}
 }
 
 void master_wait(
@@ -119,7 +164,8 @@ void master_wait(
 	// only wait on ranks that are not the master (probably 0)
 	for (proc = 1; proc < num_procs; proc++) {
 		debug(HIGH, "Waiting on proc %d...\n", proc);
-		MPI_Wait(&send_reqs[proc], MPI_STATUS_IGNORE);
+		if (send_reqs[proc] != NULL)
+			MPI_Wait(&send_reqs[proc], MPI_STATUS_IGNORE);
 		debug(HIGH, "Done waiting on proc %d.\n", proc);
 	}
 }
@@ -193,18 +239,67 @@ void receive_partition_graph(
 
 /*-------------------------------------------------------------------*/
 void receive_partition_boundaries(
-//TODO params (by ref)
+	  int ***my_incoming,
+	  int **my_incoming_counts,
+	  int ***my_outgoing,
+	  int **my_outgoing_counts,
+	  int num_procs
 		)
 {
-	// note: all sizes * sizeof(int)
+	int proc, incoming_nbr_count, outgoing_nbr_count;
+//
+//	int *incoming_counts = *my_incoming_counts;
+//	int **incoming = *my_incoming;
+//	int *outgoing_counts = *my_outgoing_counts;
+//	int **outgoing = *my_outgoing;
 
-	// for each proc
+	*my_incoming_counts = (int *) malloc(num_procs * sizeof(int));
+	*my_outgoing_counts = (int *) malloc(num_procs * sizeof(int));
+	*my_incoming = (int **) malloc(num_procs * sizeof(int *));
+	*my_outgoing = (int **) malloc(num_procs * sizeof(int *));
+
+	for (proc = 0; proc < num_procs; proc++) {
 
 		// recv size num_procs into incoming_count[proc]
-		// recv size incoming_count[proc] into incoming[proc]
+		debug(HIGH, "Receiving incoming count for nbr proc %d.\n", proc);
+		recv_ints(&((*my_incoming_counts)[proc]), 1, 0);
+
+		incoming_nbr_count = (*my_incoming_counts)[proc];
+		if (incoming_nbr_count != 0) {
+			debug(HIGH, "Allocating for count %d\n", incoming_nbr_count);
+			(*my_incoming)[proc] = (int *) malloc(incoming_nbr_count * sizeof(int));
+
+			// recv size incoming_count[proc] into incoming[proc]
+			debug(HIGH, "Receiving incoming for nbr proc %d (length %d).\n", proc, incoming_nbr_count);
+			recv_ints((*my_incoming)[proc], incoming_nbr_count, 0);
+		} else {
+			(*my_incoming) = NULL;
+		}
 
 		// recv size num_procs into outgoing_count[proc]
-		// recv size outgoing_count[proc] into outgoing[proc]
+		debug(HIGH, "Receiving outgoing count for nbr proc %d.\n", proc);
+		recv_ints(&((*my_outgoing_counts)[proc]), 1, 0);
+
+		outgoing_nbr_count = (*my_outgoing_counts)[proc];
+		if (outgoing_nbr_count != 0) {
+			debug(HIGH, "Allocating for count %d\n", outgoing_nbr_count);
+			(*my_outgoing)[proc] = (int *) malloc(outgoing_nbr_count * sizeof(int));
+
+			// recv size outgoing_count[proc] into outgoing[proc]
+			debug(HIGH, "Receiving outgoing for nbr proc %d (length %d).\n", proc, outgoing_nbr_count);
+			recv_ints((*my_outgoing)[proc], outgoing_nbr_count, 0);
+		} else {
+			(*my_outgoing)[proc] = NULL;
+		}
+		debug(VERBOSE, "Received proc boundaries:\n");
+		debug_print_proc_boundaries(VERBOSE,
+				my_incoming[proc],
+				my_incoming_counts[proc],
+				my_outgoing[proc],
+				my_incoming_counts[proc],
+				num_procs
+				);
+	}
 }
 
 /*-------------------------------------------------------------------*/

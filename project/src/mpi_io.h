@@ -38,7 +38,11 @@ void receive_partition_graph(
 		);
 
 void receive_partition_boundaries(
-//TODO params (by ref)
+	  int ***my_incoming,
+	  int **my_incoming_counts,
+	  int ***my_outgoing,
+	  int **my_outgoing_counts,
+	  int num_procs
 		);
 
 int recv_ints(
