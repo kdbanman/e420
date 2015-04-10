@@ -60,7 +60,7 @@ run_full: bin/trim bin/rank
 # run from ece420g2@e5-05-xx.ece.ualberta.ca
 # 
 # make hostfile [NUM_HOSTS=N]
-# PASS=***** make hosts
+# PASS=***** make hosts [SMALL_SIZE=10000]
 # make run_mpi [NUM_PROCS=M]
 
 hostfile:
@@ -69,7 +69,7 @@ hostfile:
 	cat data/hostfile.txt
 
 hosts:
-	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) ; done
+	for host in `cat data/hostfile.txt`;  do ./deploy.exp $$PASS $$host $(CURRENT_MPI) $(SMALL_SIZE); done
 
 bin/whois: src/whois.c
 	mpicc -o bin/whois src/whois.c
