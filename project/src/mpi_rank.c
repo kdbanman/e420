@@ -273,25 +273,23 @@ void transform_send_partition(
 		edge_counts[proc] = 0;
 	}
 
-	debug(HIGH, "Allocating for incoming arrays\n");
+	debug(HIGH, "Allocating for incoming and outgoing arrays\n");
 	incoming = (int ***) malloc(num_procs * sizeof(int **));
+	outgoing = (int ***) malloc(num_procs * sizeof(int **));
+
 	incoming_counts = (int **) malloc(num_procs * sizeof(int *));
+	outgoing_counts = (int **) malloc(num_procs * sizeof(int *));
+
 	for (proc = 0; proc < num_procs; proc++) {
 		incoming[proc] = (int **) malloc(num_procs * sizeof(int *));
-		incoming_counts[proc] = (int *) malloc(num_procs * sizeof(int));
-		for (proc_i = 0; proc_i < num_procs; proc_i++) {
-			incoming[proc][proc_i] = (int *) malloc(0);
-			incoming_counts[proc][proc_i] = 0;
-		}
-	}
-
-	debug(HIGH, "Allocating for outgoing arrays\n");
-	outgoing = (int ***) malloc(num_procs * sizeof(int **));
-	outgoing_counts = (int **) malloc(num_procs * sizeof(int *));
-	for (proc = 0; proc < num_procs; proc++) {
 		outgoing[proc] = (int **) malloc(num_procs * sizeof(int *));
+
+		incoming_counts[proc] = (int *) malloc(num_procs * sizeof(int));
 		outgoing_counts[proc] = (int *) malloc(num_procs * sizeof(int));
 		for (proc_i = 0; proc_i < num_procs; proc_i++) {
+			incoming[proc][proc_i] = (int *) malloc(0);
+			outgoing[proc][proc_i] = (int *) malloc(0);
+			incoming_counts[proc][proc_i] = 0;
 			outgoing_counts[proc][proc_i] = 0;
 		}
 	}
@@ -342,15 +340,31 @@ void transform_send_partition(
 					debug(VERBOSE, "Proc edge found between source proc %d and target proc %d\n", proc, tgt_proc);
 
 					debug(EXTREME, "Old boundaries for source: (%d)\n", proc);
-					debug_print_proc_boundaries(EXTREME, incoming[proc], incoming_counts[proc], outgoing[proc], outgoing_counts[proc], num_procs);
+					debug_print_proc_boundaries(EXTREME,
+							incoming[proc],
+							incoming_counts[proc],
+							outgoing[proc],
+							outgoing_counts[proc],
+							num_procs);
+
 					debug(EXTREME, "Old boundaries for target: (%d)\n", tgt_proc);
-					debug_print_proc_boundaries(EXTREME, incoming[tgt_proc], incoming_counts[tgt_proc], outgoing[tgt_proc], outgoing_counts[tgt_proc], num_procs);
+					debug_print_proc_boundaries(EXTREME,
+							incoming[tgt_proc],
+							incoming_counts[tgt_proc],
+							outgoing[tgt_proc],
+							outgoing_counts[tgt_proc],
+							num_procs);
 
 					// add edge target to target proc's incoming and edge source to (source) proc's outgoing
 					debug(VERBOSE, "Adding incoming edge to target proc %d's boundary for proc %d (target node %d)\n", tgt_proc, proc, tgt_idx);
-					add_proc_edge(tgt_idx, &incoming[tgt_proc][proc], &incoming_counts[tgt_proc][proc]);
+					add_proc_edge(tgt_idx,
+							&incoming[tgt_proc][proc],
+							&incoming_counts[tgt_proc][proc]);
+
 					debug(VERBOSE, "Adding outgoing edge to source proc %d's boundary for proc %d (source node %d)\n", proc, tgt_proc, src_idx);
-					add_proc_edge(src_idx, &outgoing[proc][tgt_proc], &outgoing_counts[proc][tgt_proc]);
+					add_proc_edge(src_idx,
+							&outgoing[proc][tgt_proc],
+							&outgoing_counts[proc][tgt_proc]);
 
 
 					debug(EXTREME, "New boundaries for source: (%d)\n", proc);
@@ -380,12 +394,18 @@ void transform_send_partition(
 
 void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 {
+	int new_size;
+
+	debug(VERBOSE, "Resizing proc buffer <0x%x> from %d\n", (*proc_buffer), *count);
 	*count += 1;
-	debug(VERBOSE, "Resizing proc buffer to %d, %d bytes\n", *count, *count * sizeof(int));
-	*proc_buffer =  realloc((*proc_buffer), *count * sizeof(int));
+	new_size = *count;
+
+	debug(VERBOSE, "Incremented size var to %d for node idx %d\n", new_size, node_idx);
+	*proc_buffer =  realloc((*proc_buffer), new_size * sizeof(int));
+	debug(VERBOSE, "Resized proc buffer to %d\n", new_size);
 
 	debug(VERBOSE, "Appending node %d to buffer.\n", node_idx);
-	(*proc_buffer)[*count - 1] = node_idx;
+	(*proc_buffer)[new_size - 1] = node_idx;
 }
 
 /*--------------------------------------------------------------------*/
