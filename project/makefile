@@ -61,7 +61,7 @@ run_full: bin/trim bin/rank
 # run from ece420g2@e5-05-xx.ece.ualberta.ca
 # 
 # make hostfile [NUM_HOSTS=N]
-# PASS=***** make hosts [SMALL_SIZE=10000]
+# PASS=***** make hosts [SIZE=10000]
 # make run_mpi [NUM_PROCS=M]
 
 hostfile:
@@ -97,10 +97,10 @@ mem_small_local: $(CURRENT_MPI) bin/trim
 	DEBUG=$(DEBUG_LEV) mpirun -v -output-filename mem.log -np $(LOCAL_PROCS) valgrind --suppressions=$(MPI_SUPPR) $(CURRENT_MPI) data/small.txt data/data_output
 
 run_mpi_full: $(CURRENT_MPI)
-	DEBUG=$(DEBUG_LEV) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/data_output
+	DEBUG=$(DEBUG_LEV) mpirun -output-filename out.log -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/data_output
 	
 run_mpi: $(CURRENT_MPI)
-	DEBUG=$(DEBUG_LEV) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/data_output
+	DEBUG=$(DEBUG_LEV) mpirun -output-filename out.log -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/data_output
 
 clean:
 	rm -rf bin/*

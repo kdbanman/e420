@@ -1,0 +1,24 @@
+Steps to deploy to the cluster and run are simple:
+
+1. SSH into any e5-05 machine as user ece420g2.
+   Change to project directory.
+
+  $ ssh ece420g2@e5-05-03.ece.ualberta.ca
+  $ cd e420/project
+
+2. Make a random hostfile.
+   NUM_HOSTS optional, default is 5.
+
+  $ make hostfile NUM_HOSTS=15
+
+3. Pull and compile source on each host.
+   PASS is ece420g2 password. (required)
+   SIZE is passed to datatrim. (optional, default 10000)
+
+  $ PASS=***** make hosts SIZE=20000
+
+4. Make the cluster go!
+
+  $ make run_mpi
+
+Output from each host is stored in out.log.* files.
