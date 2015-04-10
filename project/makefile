@@ -83,13 +83,13 @@ bin/mpi_io.o: src/mpi_io.h src/mpi_io.c
 bin/mpi_rank: src/mpi_rank.c bin/mpi_io.o $(DEPS)
 	mpicc -Wall -Wextra -o bin/mpi_rank src/mpi_rank.c bin/mpi_io.o $(DEPS)
 
-run_small_local: $(CURRENT_MPI)
+run_small_local: $(CURRENT_MPI) bin/trim
 	# Generate smaller graph
 	bin/trim $(SMALL_SIZE) data/full.txt data/small.txt
 	# Calculate
 	mpirun -v -output-filename out.log -np $(LOCAL_PROCS) $(CURRENT_MPI) data/small.txt data/small_out.txt
 
-mem_small_local: $(CURRENT_MPI)
+mem_small_local: $(CURRENT_MPI) bin/trim
 	# Generate smaller graph
 	bin/trim $(MEM_SIZE) data/full.txt data/small.txt
 	# Calculate
@@ -97,6 +97,11 @@ mem_small_local: $(CURRENT_MPI)
 
 run_mpi: $(CURRENT_MPI)
 	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/full.txt data/full_out.txt
+	
+run_mpi_small: $(CURRENT_MPI) bin/trim
+	# Generate smaller graph
+	bin/trim $(MEM_SIZE) data/full.txt data/small.txt
+	DEBUG=$(DEBUG) mpirun -np $(NUM_PROCS) --hostfile data/hostfile.txt $(DIR)/$(CURRENT_MPI) data/small.txt data/small_out.txt
 
 clean:
 	rm -rf bin/*
