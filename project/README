@@ -11,7 +11,7 @@ Steps to deploy to the cluster and run are simple:
 
   $ make hostfile NUM_HOSTS=15
 
-3. Pull and compile source on each host.
+3. Pull and compile source on each host. (See deploy.exp for details.)
    PASS is ece420g2 password. (required)
    SIZE is passed to datatrim. (optional, default 10000)
 
@@ -20,5 +20,3 @@ Steps to deploy to the cluster and run are simple:
 4. Make the cluster go!
 
   $ make run_mpi
-
-Output from each host is stored in out.log.* files.
