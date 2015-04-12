@@ -393,7 +393,14 @@ double get_global_delta(
 {
 	double global_delta;
 
-//	MPI_Allreduce(stuff);
+	MPI_Allreduce(
+			&local_delta,
+			&global_delta,
+			1,
+			MPI_DOUBLE,
+			MPI_SUM,
+			MPI_COMM_WORLD
+			);
 
 	return global_delta;
 }

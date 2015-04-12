@@ -470,7 +470,9 @@ void synced_rank(
 		delta = rank_iter(graph, total_size);
     delta += send_recv_ranks(graph, incoming, incoming_counts, outgoing, outgoing_counts, num_procs);
 
+    debug(HIGH, "Sending local delta %f\n", delta);
     delta = get_global_delta(delta, num_procs);
+    debug(HIGH, "Received global delta %f\n", delta);
 	}
 
 }
