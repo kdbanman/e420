@@ -56,6 +56,19 @@ int recv_ints(
 		int src_rank
 		);
 
+double send_recv_ranks(
+		graph_t *graph,
+		int **incoming,
+		int *incoming_counts,
+		int **outgoing,
+		int *outgoing_counts,
+		int num_procs
+		);
+
+double get_global_delta(
+		double local_delta,
+		int num_procs);
+
 void receive_results_and_save(
 //		char *output_filename,
 //		int *part_sizes,

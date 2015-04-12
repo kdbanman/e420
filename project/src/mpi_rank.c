@@ -167,16 +167,17 @@ int main( int argc, char *argv[] )
 
 	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
-//			&my_graph,
-//			threshold,
-//			prob_size->nodes,
-//			my_incoming,
-//			my_incoming_counts,
-//			my_outgoing,
-//			my_outgoing_counts,
-//			num_procs
+			&my_graph,
+			threshold,
+			prob_size->nodes,
+			my_incoming,
+			my_incoming_counts,
+			my_outgoing,
+			my_outgoing_counts,
+			num_procs
 			);
 
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	// master receive result array from all (master sends self)
 	if (my_rank == 0) {
@@ -450,27 +451,28 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 
 /*--------------------------------------------------------------------*/
 void synced_rank(
-//		graph_t *graph,
-//		double threshold,
-//		int total_size,
-//		int **incoming, //each proc: array of indices for ranks to recv
-//    int *incoming_counts,
-//		int **outgoing, //each proc: array of indices for ranks to send
-//    int *outgoing_counts,
-//		int num_procs
+		graph_t *graph,
+		double threshold,
+		int total_size,
+		int **incoming, //each proc: array of indices for ranks to recv
+    int *incoming_counts,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
 		)
 {
-//	double delta;
-//
-//	rank_init(graph, total_size);
-//
-//	while (delta >= threshold) {
-		// rank iter on local graph
+	double delta;
 
-		// receive other rank arrays
+	rank_init(graph, total_size);
 
-		// include other rank arrays
-//	}
+	delta = threshold;
+	while (delta >= threshold) {
+		delta = rank_iter(graph, total_size);
+    delta += send_recv_ranks(graph, incoming, incoming_counts, outgoing, outgoing_counts, num_procs);
+
+    delta = get_global_delta(delta, num_procs);
+	}
+
 }
 
 /*-------------------------------------------------------------------*/

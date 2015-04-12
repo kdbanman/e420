@@ -365,6 +365,40 @@ int recv_ints(
 }
 
 /*-------------------------------------------------------------------*/
+double send_recv_ranks(
+		graph_t *graph,
+		int **incoming,
+		int *incoming_counts,
+		int **outgoing,
+		int *outgoing_counts,
+		int num_procs
+		)
+{
+	int proc;
+	double delta;
+	double incoming_ranks[num_procs];
+
+	delta = 0.0;
+	for (proc = 0; proc < num_procs; proc++) {
+		incoming_ranks[proc] = 0.0;
+	}
+
+	return delta;
+}
+
+/*-------------------------------------------------------------------*/
+double get_global_delta(
+		double local_delta,
+		int num_procs)
+{
+	double global_delta;
+
+//	MPI_Allreduce(stuff);
+
+	return global_delta;
+}
+
+/*-------------------------------------------------------------------*/
 void receive_results_and_save(
 //		char *output_filename,
 //		int *part_sizes,
