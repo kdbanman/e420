@@ -62,6 +62,11 @@ double rank_iter(graph_t *graph, int total_size)
 	delta = 0.0;
 	for (i = 0; i < graph->node_count; i++) {
 
+		if (graph->nodes[i]->empty) {
+			debug(VERBOSE, "Skipping empty node %d\n", i);
+			continue;
+		}
+
 		old_rank = graph->nodes[i]->rank;
 
 		debug(VERBOSE, "Calculating rank of node %d. Currently %5.9f... ",
@@ -80,6 +85,12 @@ double rank_iter(graph_t *graph, int total_size)
 	total_rank = 0.0;
 	debug(HIGH, "Copying ranks to graph.\n");
 	for (i = 0; i < graph->node_count; i++) {
+
+		if (graph->nodes[i]->empty) {
+			debug(VERBOSE, "Skipping empty node %d\n", i);
+			continue;
+		}
+
 		graph->nodes[i]->rank = new_ranks[i];
 		total_rank += new_ranks[i];
 	}
