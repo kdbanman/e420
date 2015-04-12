@@ -260,7 +260,11 @@ void partition_graph_simple(
   node = 0;
   for (proc = 0; proc < num_procs; proc++) {
   	(*node_counts)[proc] = 0;
-  	part_len = (proc + 1) * (graph->node_count / num_procs);
+  	if (proc != num_procs - 1) {
+  		part_len = (proc + 1) * (graph->node_count / num_procs);
+  	} else {
+  		part_len = graph->node_count;
+  	}
   	debug(VERBOSE, "Assigning proc %d from %d to %d\n", proc, node, part_len);
   	debug(VERBOSE, "Allocating for %d assignemnts\n", part_len - node);
   	(*nodes)[proc] = (int *) malloc((part_len - node) * sizeof(int));
