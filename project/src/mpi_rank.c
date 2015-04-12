@@ -98,6 +98,7 @@ int main( int argc, char *argv[] )
   int name_len = 512;
   char hostname[name_len];
 
+  int proc;
 	int *part_sizes;
 	double time_start, time_end;
 	char *input_filename, *output_filename;
@@ -122,6 +123,11 @@ int main( int argc, char *argv[] )
 
 		debug(LOW, "Master host: %s\n", hostname);
 		prob_size = init_cluster(input_filename, &part_sizes, num_procs);
+
+		debug(LOW, "Master initialized cluster with partition sizes:\n");
+		for (proc = 0; proc < num_procs; proc++) {
+			debug(LOW, "Proc %2d:  %d nodes\n", proc, part_sizes[proc]);
+		}
 
 
 		// master must receive work from self
@@ -165,6 +171,8 @@ int main( int argc, char *argv[] )
 		debug(HIGH, "%3d:   Received edge count %d...\n", my_rank, prob_size->edges);
 	}
 
+	graph_ensure_node(&my_graph, prob_size->nodes);
+
 	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
 			&my_graph,
@@ -174,6 +182,7 @@ int main( int argc, char *argv[] )
 			my_incoming_counts,
 			my_outgoing,
 			my_outgoing_counts,
+			my_rank,
 			num_procs
 			);
 
@@ -245,7 +254,7 @@ void partition_graph_simple(
 		int num_procs
 		)
 {
-	int proc, node, part_len, i;
+	int proc, node, part_end, part_len, i;
 	
 	debug(HIGH, "Allocating partition to node arr\n");
 	*nodes = (int **) malloc(num_procs * sizeof(int *));
@@ -261,20 +270,25 @@ void partition_graph_simple(
   for (proc = 0; proc < num_procs; proc++) {
   	(*node_counts)[proc] = 0;
   	if (proc != num_procs - 1) {
-  		part_len = (proc + 1) * (graph->node_count / num_procs);
+  		part_end = (proc + 1) * (graph->node_count / num_procs);
   	} else {
-  		part_len = graph->node_count;
+  		part_end = graph->node_count - 1;
   	}
-  	debug(VERBOSE, "Assigning proc %d from %d to %d\n", proc, node, part_len);
-  	debug(VERBOSE, "Allocating for %d assignemnts\n", part_len - node);
-  	(*nodes)[proc] = (int *) malloc((part_len - node) * sizeof(int));
-    for (i = 0; node < part_len; node++) {
+  	debug(HIGH, "Assigning proc %d from %d to %d\n", proc, node, part_end);
+
+  	part_len = part_end - node + 1;
+  	debug(HIGH, "Allocating for %d assignemnts\n", part_len);
+  	(*nodes)[proc] = (int *) malloc(part_len * sizeof(int));
+
+    for (i = 0; i < part_len;) {
+    	debug(VERBOSE, "Assigning node %d\n", node);
     	(*partitions)[node] = proc;
     	(*nodes)[proc][i] = node;
     	(*node_counts)[proc]++;
+    	node++;
     	i++;
     }
-    debug(VERBOSE, "%d nodes assigned.\n", (*node_counts)[proc]);
+    debug(HIGH, "%d nodes assigned.\n", (*node_counts)[proc]);
   }
   
 }
@@ -426,7 +440,8 @@ void transform_send_partition(
 	debug_print_all_edge_pairs(VERBOSE, edge_pairs, edge_counts, num_procs);
 
 	debug(LOW, "Distributing partition in main.\n");
-	send_partition(edge_pairs,
+	send_partition(
+			edge_pairs,
 			edge_counts,
 			incoming,
 			incoming_counts,
@@ -462,6 +477,7 @@ void synced_rank(
     int *incoming_counts,
 		int **outgoing, //each proc: array of indices for ranks to send
     int *outgoing_counts,
+    int my_rank,
 		int num_procs
 		)
 {
@@ -472,10 +488,15 @@ void synced_rank(
 	delta = threshold;
 	while (delta >= threshold) {
 		delta = rank_iter(graph, total_size);
-    delta += send_recv_ranks(graph, incoming, incoming_counts, outgoing, outgoing_counts, num_procs);
+    delta += send_recv_ranks(graph,
+    		incoming,
+    		incoming_counts,
+    		outgoing,
+    		outgoing_counts,
+    		num_procs);
 
     debug(HIGH, "Sending local delta %f\n", delta);
-    delta = get_global_delta(delta, num_procs);
+    delta = get_global_delta(delta);
     debug(HIGH, "Received global delta %f\n", delta);
 	}
 

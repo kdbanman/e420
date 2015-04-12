@@ -51,6 +51,7 @@ typedef struct graph_t {
  * node_t array is initialized to NULL, intended for realloc() in add_edge().
  */
 graph_t * graph_init();
+void graph_ensure_node(graph_t *graph, int node_idx);
 /* Reallocs node array if necessary, initializing additional elements to NULL.
  * Init src/dst node if they don't exist. Increments node count accordingly.
  * Add edge between src and dst using add_nbr(). (Does not check for existence.)

@@ -185,7 +185,7 @@ void master_send_int(
 	for (proc = 1; proc < num_procs; proc++) {
 		isend_ints(to_send, 1, proc, &send_reqs[proc]);
 	}
-	master_wait(&send_reqs, num_procs);
+	master_wait(send_reqs, num_procs);
 }
 
 void master_wait(
@@ -374,21 +374,25 @@ double send_recv_ranks(
 		int num_procs
 		)
 {
-	int proc, i, outgoing_idx;
+	int proc, i, outgoing_idx, max_len;
 	double delta, outgoing_rank;
-	double *incoming_ranks[num_procs],
-	        *outgoing_ranks[num_procs];
 
 	// make room for ranks
+	// size all incoming and outgoing to the same size nondestructively for use with all-to-all
+	max_len = incoming_counts[0];
 	for (proc = 0; proc < num_procs; proc++) {
-		if (incoming_counts[proc] > 0) {
-			incoming_ranks[proc] = (double *) malloc(incoming_counts[proc] * sizeof(double));
+		if (incoming_counts[proc] > max_len) {
+			max_len = incoming_counts[proc];
 		}
-
-		if (outgoing_counts[proc] > 0) {
-			outgoing_ranks[proc] = (double *) malloc(outgoing_counts[proc] * sizeof(double));
+		if (outgoing_counts[proc] > max_len) {
+			max_len = outgoing_counts[proc];
 		}
 	}
+
+	double incoming_ranks[num_procs][max_len],
+	        outgoing_ranks[num_procs][max_len];
+
+
 
 	debug(HIGH, "Extracting outgoing ranks\n");
 	for (proc = 0; proc < num_procs; proc++) {
@@ -406,29 +410,27 @@ double send_recv_ranks(
 		}
 	}
 
-	// TODO send and receive ranks
+	// send and receive ranks
+	debug(HIGH, "Sending and receiving ranks...\n");
+	MPI_Alltoall(outgoing_ranks, max_len, MPI_DOUBLE, incoming_ranks, max_len, MPI_DOUBLE, MPI_COMM_WORLD);
+
+	debug(VERBOSE, "Received ranks:\n");
+	for (proc = 0; proc < num_procs; proc++) {
+		debug(VERBOSE, "From proc %d\n", proc);
+		for (i = 0; i < incoming_counts[proc]; i++) {
+			debug(VERBOSE, "  For node %4d: %f\n", incoming[proc][i], incoming_ranks[proc][i]);
+		}
+	}
 
 	// TODO include ranks
 	delta = 0.0;
-
-	// make room for ranks
-	for (proc = 0; proc < num_procs; proc++) {
-		if (incoming_counts[proc] > 0) {
-			free(incoming_ranks[proc]);
-		}
-
-		if (outgoing_counts[proc] > 0) {
-			free(outgoing_ranks[proc]);
-		}
-	}
 
 	return delta;
 }
 
 /*-------------------------------------------------------------------*/
 double get_global_delta(
-		double local_delta,
-		int num_procs)
+		double local_delta)
 {
 	double global_delta;
 

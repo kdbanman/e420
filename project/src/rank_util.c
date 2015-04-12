@@ -63,7 +63,7 @@ double rank_iter(graph_t *graph, int total_size)
 	for (i = 0; i < graph->node_count; i++) {
 
 		if (graph->nodes[i]->empty) {
-			debug(VERBOSE, "Skipping empty node %d\n", i);
+			debug(EXTREME, "Skipping empty node %d\n", i);
 			continue;
 		}
 
@@ -87,7 +87,7 @@ double rank_iter(graph_t *graph, int total_size)
 	for (i = 0; i < graph->node_count; i++) {
 
 		if (graph->nodes[i]->empty) {
-			debug(VERBOSE, "Skipping empty node %d\n", i);
+			debug(EXTREME, "Skipping empty node %d\n", i);
 			continue;
 		}
 

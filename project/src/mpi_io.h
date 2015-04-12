@@ -66,8 +66,7 @@ double send_recv_ranks(
 		);
 
 double get_global_delta(
-		double local_delta,
-		int num_procs
+		double local_delta
 		);
 
 void receive_results_and_save(

@@ -117,31 +117,42 @@ graph_t * graph_init()
 }
 
 /*--------------------------------------------------------------------*/
+void graph_ensure_node(graph_t *graph, int node_idx)
+{
+	int necessary_length, i;
+
+	necessary_length = node_idx + 1;
+
+	if (necessary_length >= graph->node_count) {
+		debug(VERBOSE,
+					"reallocating nodes <0x%x> from size %d to size %d\n",
+					graph->nodes,
+					graph->node_count,
+					necessary_length);
+		graph->nodes = resize_nodes(graph->nodes, necessary_length);
+
+		debug(VERBOSE, "nodes new addr <0x%x>\n", graph->nodes);
+
+		for (i = graph->node_count; i < necessary_length; i++) {
+			debug(VERBOSE, "initializing node %d\n", i);
+			graph->nodes[i] = node_init(i);
+		}
+
+		graph->node_count = necessary_length;
+	}
+}
+
+/*--------------------------------------------------------------------*/
 void graph_add_edge(graph_t *graph, int src_idx, int dst_idx)
 {
-  int necessary_length, i;
+  int max_idx;
 
   debug(VERBOSE, "adding edge to graph from %d to %d\n", src_idx, dst_idx);
 
   // Ensure all nodes up to the highest index being added exist
-  necessary_length = 1 + (src_idx >= dst_idx ? src_idx : dst_idx);
-  if (necessary_length >= graph->node_count) {
-    debug(VERBOSE,
-          "reallocating nodes <0x%x> from size %d to size %d\n",
-          graph->nodes,
-          graph->node_count,
-          necessary_length);
-    graph->nodes = resize_nodes(graph->nodes, necessary_length);
+  max_idx = src_idx >= dst_idx ? src_idx : dst_idx;
 
-    debug(VERBOSE, "nodes new addr <0x%x>\n", graph->nodes);
-
-    for (i = graph->node_count; i < necessary_length; i++) {
-      debug(VERBOSE, "initializing node %d\n", i);
-      graph->nodes[i] = node_init(i);
-    }
-
-    graph->node_count = necessary_length;
-  }
+  graph_ensure_node(graph, max_idx);
 
   add_nbr(graph->nodes[src_idx], graph->nodes[dst_idx]);
   graph->edge_count++;
