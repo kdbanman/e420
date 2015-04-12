@@ -306,6 +306,9 @@ void receive_partition_boundaries(
 			(*my_incoming)[proc] = NULL;
 			debug(HIGH, "Zero received!\n");
 		}
+	}
+
+	for (proc = 0; proc < num_procs; proc++) {
 
 		// recv size num_procs into outgoing_count[proc]
 		debug(HIGH, "Receiving outgoing count for nbr proc %d.\n", proc);
