@@ -374,13 +374,52 @@ double send_recv_ranks(
 		int num_procs
 		)
 {
-	int proc;
-	double delta;
-	double incoming_ranks[num_procs];
+	int proc, i, outgoing_idx;
+	double delta, outgoing_rank;
+	double *incoming_ranks[num_procs],
+	        *outgoing_ranks[num_procs];
 
-	delta = 0.0;
+	// make room for ranks
 	for (proc = 0; proc < num_procs; proc++) {
-		incoming_ranks[proc] = 0.0;
+		if (incoming_counts[proc] > 0) {
+			incoming_ranks[proc] = (double *) malloc(incoming_counts[proc] * sizeof(double));
+		}
+
+		if (outgoing_counts[proc] > 0) {
+			outgoing_ranks[proc] = (double *) malloc(outgoing_counts[proc] * sizeof(double));
+		}
+	}
+
+	debug(HIGH, "Extracting outgoing ranks\n");
+	for (proc = 0; proc < num_procs; proc++) {
+		for (i = 0; i < outgoing_counts[proc]; i++) {
+			outgoing_idx = outgoing[proc][i];
+
+			debug(VERBOSE, "Extracting node %d\n", outgoing_idx);
+			node_t * node = graph->nodes[outgoing_idx];
+
+			debug(VERBOSE, "Extracting rank from node %d\n", outgoing_idx);
+			outgoing_rank = node->rank;
+
+			debug(VERBOSE, "Rank %f extracted, assigning to position %d of outgoing buffer\n", outgoing_rank, i);
+			outgoing_ranks[proc][i] = outgoing_rank;
+		}
+	}
+
+	// TODO send and receive ranks
+
+	// TODO include ranks
+	delta = 0.0;
+
+	// make room for ranks
+	for (proc = 0; proc < num_procs; proc++) {
+		if (incoming_counts[proc] > 0) {
+			free(incoming_ranks[proc]);
+		}
+
+		if (outgoing_counts[proc] > 0) {
+			free(outgoing_ranks[proc]);
+		}
 	}
 
 	return delta;
