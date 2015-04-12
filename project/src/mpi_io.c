@@ -47,7 +47,7 @@ void send_partition(
 	debug(LOW, "\n");
 
 	// send incoming and outgoing boundary data for each proc pair
-	debug(LOW, "Sending boundary data");
+	debug(LOW, "Sending boundary data\n");
 	for (nbr_proc = 0; nbr_proc < num_procs; nbr_proc++) {
 
 		for (proc = 1; proc < num_procs; proc++) {
@@ -374,8 +374,8 @@ double send_recv_ranks(
 		int num_procs
 		)
 {
-	int proc, i, outgoing_idx, max_len;
-	double delta, outgoing_rank;
+	int proc, i, outgoing_idx, incoming_idx, max_len;
+	double delta, outgoing_rank, incoming_rank;
 
 	// make room for ranks
 	// size all incoming and outgoing to the same size nondestructively for use with all-to-all
@@ -392,10 +392,8 @@ double send_recv_ranks(
 	double incoming_ranks[num_procs][max_len],
 	        outgoing_ranks[num_procs][max_len];
 
-
-
-	debug(HIGH, "Extracting outgoing ranks\n");
 	for (proc = 0; proc < num_procs; proc++) {
+		debug(HIGH, "Extracting outgoing ranks for proc %d\n", proc);
 		for (i = 0; i < outgoing_counts[proc]; i++) {
 			outgoing_idx = outgoing[proc][i];
 
@@ -406,13 +404,13 @@ double send_recv_ranks(
 			outgoing_rank = node->rank;
 
 			debug(VERBOSE, "Rank %f extracted, assigning to position %d of outgoing buffer\n", outgoing_rank, i);
-			outgoing_ranks[proc][i] = outgoing_rank;
+			outgoing_ranks[proc][i] = outgoing_rank / node->outgoing_count;
 		}
 	}
 
 	// send and receive ranks
 	debug(HIGH, "Sending and receiving ranks...\n");
-	MPI_Alltoall(outgoing_ranks, max_len, MPI_DOUBLE, incoming_ranks, max_len, MPI_DOUBLE, MPI_COMM_WORLD);
+	MPI_Alltoall(&outgoing_ranks, max_len, MPI_DOUBLE, &incoming_ranks, max_len, MPI_DOUBLE, MPI_COMM_WORLD);
 
 	debug(VERBOSE, "Received ranks:\n");
 	for (proc = 0; proc < num_procs; proc++) {
@@ -422,8 +420,20 @@ double send_recv_ranks(
 		}
 	}
 
-	// TODO include ranks
+	// include ranks
+	debug(HIGH, "Including ranks from other machines...\n");
 	delta = 0.0;
+	for (proc = 0; proc < num_procs; proc++) {
+		for (i = 0; i < incoming_counts[proc]; i++) {
+			incoming_idx = incoming[proc][i];
+			incoming_rank = 0.85 * incoming_ranks[proc][i];
+
+			debug(VERBOSE, "  For node %4d, contribution incoming: %f\n", incoming_idx, incoming_rank);
+			graph->nodes[incoming_idx]->rank += incoming_rank;
+			delta += incoming_rank > 0 ? incoming_rank : incoming_rank * -1.0;
+		}
+	}
+	debug(HIGH, "External delta contribution: %f\n", delta);
 
 	return delta;
 }

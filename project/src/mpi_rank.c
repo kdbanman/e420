@@ -439,6 +439,14 @@ void transform_send_partition(
 
 	debug_print_all_edge_pairs(VERBOSE, edge_pairs, edge_counts, num_procs);
 
+	debug(VERBOSE, "Before sending from master:\n");
+	debug_print_boundaries(VERBOSE,
+			incoming,
+			incoming_counts,
+			outgoing,
+			outgoing_counts,
+			num_procs);
+
 	debug(LOW, "Distributing partition in main.\n");
 	send_partition(
 			edge_pairs,
