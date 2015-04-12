@@ -67,7 +67,8 @@ double send_recv_ranks(
 
 double get_global_delta(
 		double local_delta,
-		int num_procs);
+		int num_procs
+		);
 
 void receive_results_and_save(
 //		char *output_filename,
