@@ -48,6 +48,7 @@ node_t * node_init(int idx)
   node->idx = idx;
   node->incoming_count = 0;
   node->outgoing_count = 0;
+  node->outgoing_count_external = 0;
   node->incoming = malloc(0);
   node->outgoing = malloc(0);
   node->rank = 0.0;

@@ -103,7 +103,7 @@ double rank_iter(graph_t *graph, int total_size)
 double rank_node(graph_t *graph, int node_id, int total_size)
 {
 	double rank;
-	int i;
+	int i, outgoing;
 	node_t *node;
 
 	rank = 0.0;
@@ -111,9 +111,10 @@ double rank_node(graph_t *graph, int node_id, int total_size)
 	for (i = 0; i < node->incoming_count; i++) {
 		node_t *src_nbr = node->incoming[i];
 
+		outgoing = src_nbr->outgoing_count + src_nbr->outgoing_count_external;
 		double src_outgoing_count =
-				src_nbr->outgoing_count != 0 ?
-				(double) src_nbr->outgoing_count :
+				outgoing != 0 ?
+				(double) outgoing :
 				(double) (total_size - 1);
 
 		rank += src_nbr->rank / src_outgoing_count;

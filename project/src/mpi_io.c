@@ -407,7 +407,8 @@ double send_recv_ranks(
 			outgoing_rank = node->rank;
 
 			debug(VERBOSE, "Rank %f extracted, assigning to position %d of outgoing buffer\n", outgoing_rank, i);
-			outgoing_ranks[proc][i] = outgoing_rank / node->outgoing_count;
+			debug(VERBOSE, "Outgoing count %d\n", node->outgoing_count);
+			outgoing_ranks[proc][i] = outgoing_rank / (double) (node->outgoing_count + node->outgoing_count_external);
 		}
 	}
 

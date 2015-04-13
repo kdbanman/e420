@@ -64,6 +64,13 @@ void add_proc_edge(
 		int *count
 		);
 
+void count_external_edges(
+		graph_t *graph,
+		int **outgoing,
+		int *outgoing_counts,
+		int num_procs
+		);
+
 void synced_rank(
 //		graph_t *graph,
 //		double threshold,
@@ -172,6 +179,8 @@ int main( int argc, char *argv[] )
 	}
 
 	graph_ensure_node(&my_graph, prob_size->nodes);
+
+	count_external_edges(&my_graph, my_outgoing, my_outgoing_counts, num_procs);
 
 	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
@@ -474,6 +483,24 @@ void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 
 	debug(VERBOSE, "Appending node %d to buffer.\n", node_idx);
 	(*proc_buffer)[new_size - 1] = node_idx;
+}
+
+void count_external_edges(
+		graph_t *graph,
+		int **outgoing,
+		int *outgoing_counts,
+		int num_procs
+		)
+{
+	int proc, node_idx, i;
+
+	// the edges in outgoing[][] are not in the subgraph, so they must be counted separately
+	for (proc = 0; proc < num_procs; proc++) {
+		for (i = 0; i < outgoing_counts[proc]; i++) {
+			node_idx = outgoing[proc][i];
+			graph->nodes[node_idx]->outgoing_count_external++;
+		}
+	}
 }
 
 /*--------------------------------------------------------------------*/
