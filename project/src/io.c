@@ -161,7 +161,12 @@ void debug_print_node(int level, node_t node)
   debug(level, "  %d targets: ", node.outgoing_count);
   for (i = 0; i < node.outgoing_count; i++)
     debug(level, " %d", node.outgoing[i]->idx);
+  debug(level, "\n  %d global targets\n", node.outgoing_count_global);
   debug(level, "\n");
+
+  if (node.outgoing_count != node.outgoing_count_global)
+  	debug(level, "Different global and local outgoing counts: %d vs %d\n",
+  			node.outgoing_count, node.outgoing_count_global);
 }
 
 void debug_print_graph(int level, graph_t graph)

@@ -30,6 +30,7 @@ typedef struct node_t {
   int idx;
   int incoming_count;
   int outgoing_count;
+  int outgoing_count_global;
   struct node_t **incoming;
   struct node_t **outgoing;
   double rank;

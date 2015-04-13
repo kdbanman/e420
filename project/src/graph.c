@@ -48,6 +48,7 @@ node_t * node_init(int idx)
   node->idx = idx;
   node->incoming_count = 0;
   node->outgoing_count = 0;
+  node->outgoing_count_global = 0;
   node->incoming = malloc(0);
   node->outgoing = malloc(0);
   node->rank = 0.0;
@@ -62,6 +63,7 @@ void add_nbr(node_t *src, node_t *dst)
   dst->empty = 0;
 
   src->outgoing_count++;
+  src->outgoing_count_global++;
   dst->incoming_count++;
 
   debug(VERBOSE,

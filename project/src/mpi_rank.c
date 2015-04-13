@@ -58,6 +58,13 @@ void transform_send_partition(
 		int num_procs
 		);
 
+void count_external_edges(
+		graph_t *graph,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
+		);
+
 void add_proc_edge(
 		int node_idx,
 		int **proc_buffer,
@@ -65,14 +72,14 @@ void add_proc_edge(
 		);
 
 void synced_rank(
-//		graph_t *graph,
-//		double threshold,
-//		int total_size,
-//		int **incoming, //each proc: array of indices for ranks to recv
-//    int *incoming_counts,
-//		int **outgoing, //each proc: array of indices for ranks to send
-//    int *outgoing_counts,
-//		int num_procs
+		graph_t *graph,
+		double threshold,
+		int total_size,
+		int **incoming, //each proc: array of indices for ranks to recv
+    int *incoming_counts,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
 		);
 
 void usage(char* prog_name);
@@ -173,7 +180,18 @@ int main( int argc, char *argv[] )
 
 	graph_ensure_node(&my_graph, prob_size->nodes);
 
-	//debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
+	debug(LOW, "%3d:   Counting boundary edges...\n", my_rank);
+	count_external_edges(
+			&my_graph,
+			my_outgoing, //each proc: array of indices for ranks to send
+			my_outgoing_counts,
+			num_procs
+			);
+
+	debug(LOW, "%3d:   Subgraph fully received.\n", my_rank);
+	debug_print_graph(VERBOSE, my_graph);
+
+	debug(LOW, "%3d:   Proc entering rank procedure with %d nodes and %d edges...\n", my_rank, prob_size->nodes, prob_size->edges);
 	synced_rank(
 			&my_graph,
 			threshold,
@@ -182,7 +200,6 @@ int main( int argc, char *argv[] )
 			my_incoming_counts,
 			my_outgoing,
 			my_outgoing_counts,
-			my_rank,
 			num_procs
 			);
 
@@ -460,6 +477,28 @@ void transform_send_partition(
 
 }
 
+void count_external_edges(
+		graph_t *graph,
+		int **outgoing, //each proc: array of indices for ranks to send
+    int *outgoing_counts,
+		int num_procs
+		)
+{
+	int proc, i, node_idx;
+	node_t *node;
+
+	for (proc = 0; proc < num_procs; proc++) {
+		debug(HIGH, "Noting external edges to proc %d\n", proc);
+		for (i = 0; i < outgoing_counts[proc]; i++) {
+			node_idx = outgoing[proc][i];
+			debug(VERBOSE, "Noting external edge from node %d\n", node_idx);
+			node = graph->nodes[node_idx];
+			node->outgoing_count_global++;
+			debug(VERBOSE, "Incremented global outgoing edge counter to %d\n", node->outgoing_count_global);
+		}
+	}
+}
+
 void add_proc_edge(int node_idx, int **proc_buffer, int *count)
 {
 	int new_size;
@@ -485,7 +524,6 @@ void synced_rank(
     int *incoming_counts,
 		int **outgoing, //each proc: array of indices for ranks to send
     int *outgoing_counts,
-    int my_rank,
 		int num_procs
 		)
 {

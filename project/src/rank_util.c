@@ -112,8 +112,8 @@ double rank_node(graph_t *graph, int node_id, int total_size)
 		node_t *src_nbr = node->incoming[i];
 
 		double src_outgoing_count =
-				src_nbr->outgoing_count != 0 ?
-				(double) src_nbr->outgoing_count :
+				src_nbr->outgoing_count_global != 0 ?
+				(double) src_nbr->outgoing_count_global :
 				(double) (total_size - 1);
 
 		rank += src_nbr->rank / src_outgoing_count;
