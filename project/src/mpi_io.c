@@ -404,11 +404,38 @@ double send_recv_ranks(
 			node_t * node = graph->nodes[outgoing_idx];
 
 			debug(VERBOSE, "Extracting rank from node %d\n", outgoing_idx);
-			outgoing_rank = node->rank;
+			outgoing_rank = node->previous_rank;
 
+			if (outgoing_idx == 5828) {
+				outgoing_rank = 69.696969;
+
+				debug(LOW, "KIRBY: set node 5828 to %f\n", outgoing_rank);
+			}
+
+			if (node->outgoing_count_external == 0) {
+				debug(LOW, "ERROR: Outgoing count external should not be zero!\n");
+			}
 			debug(VERBOSE, "Rank %f extracted, assigning to position %d of outgoing buffer\n", outgoing_rank, i);
-			debug(VERBOSE, "Outgoing count %d\n", node->outgoing_count);
+			debug(VERBOSE, "Outgoing count %d, external count %d\n", node->outgoing_count, node->outgoing_count_external);
+
+			if (outgoing_rank != outgoing_rank) {
+				debug(LOW, "ERROR: outgoing rank is nan for node %d\n", node->idx);
+			}
+
 			outgoing_ranks[proc][i] = outgoing_rank / (double) (node->outgoing_count + node->outgoing_count_external);
+
+			if (node->outgoing_count + node->outgoing_count_external == 0) {
+				debug(LOW, "ERROR: divided by zero in send_recv_ranks at node %d.\n", node->idx);
+			}
+
+			if (outgoing_ranks[proc][i] != outgoing_ranks[proc][i]) {
+				debug(LOW, "ERROR: nan outgoing for node %d destined for proc %d\n", outgoing_idx, proc);
+			}
+
+			debug(VERBOSE, "Rank contribution %f calculated and stored.\n", outgoing_ranks[proc][i]);
+		}
+		for (;i < max_len; i++) {
+			outgoing_ranks[proc][i] = 0.0;
 		}
 	}
 
@@ -432,7 +459,11 @@ double send_recv_ranks(
 			incoming_idx = incoming[proc][i];
 			incoming_rank = 0.85 * incoming_ranks[proc][i];
 
-			debug(VERBOSE, "  For node %4d, contribution incoming: %f\n", incoming_idx, incoming_rank);
+			if (incoming_rank != incoming_rank) {
+				debug(LOW, "ERROR: nan incoming rank for node %d from proc %d\n", incoming_idx, proc);
+			}
+
+			debug(VERBOSE, "  For node %4d of proc %d, contribution incoming: %f\n", incoming_idx, proc, incoming_rank);
 			graph->nodes[incoming_idx]->rank += incoming_rank;
 			delta += incoming_rank > 0 ? incoming_rank : incoming_rank * -1.0;
 		}

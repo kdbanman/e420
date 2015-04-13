@@ -34,6 +34,7 @@ typedef struct node_t {
   struct node_t **incoming;
   struct node_t **outgoing;
   double rank;
+  double previous_rank;
 } node_t;
 
 /* Allocates a node_t struct and sets members to idx, 0, and NULL */

@@ -52,6 +52,7 @@ node_t * node_init(int idx)
   node->incoming = malloc(0);
   node->outgoing = malloc(0);
   node->rank = 0.0;
+  node->previous_rank = 0.0;
   
   return node;
 }

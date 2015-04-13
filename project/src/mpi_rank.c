@@ -234,6 +234,7 @@ problem_size_t * init_cluster(
 	debug(LOW, "Loading graph in master...\n");
 	load_input(filename, &graph);
 
+
 	debug_print_graph(VERBOSE, graph);
 
 	debug(HIGH, "Getting problem size...\n");
@@ -498,6 +499,7 @@ void count_external_edges(
 	for (proc = 0; proc < num_procs; proc++) {
 		for (i = 0; i < outgoing_counts[proc]; i++) {
 			node_idx = outgoing[proc][i];
+
 			graph->nodes[node_idx]->outgoing_count_external++;
 		}
 	}

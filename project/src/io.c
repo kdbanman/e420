@@ -162,6 +162,8 @@ void debug_print_node(int level, node_t node)
   for (i = 0; i < node.outgoing_count; i++)
     debug(level, " %d", node.outgoing[i]->idx);
   debug(level, "\n");
+
+  debug(level, "  %d external targets\n", node.outgoing_count_external);
 }
 
 void debug_print_graph(int level, graph_t graph)

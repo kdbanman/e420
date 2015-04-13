@@ -30,6 +30,7 @@ int rank_init(graph_t *graph, int total_size)
 	for (i = 0; i < graph->node_count; i++) {
 		debug(VERBOSE, "Initializing node %d rank to %5.9f\n", i, rank);
 		graph->nodes[i]->rank = rank;
+		graph->nodes[i]->previous_rank = rank;
 	}
 
 	return 0;
@@ -91,6 +92,7 @@ double rank_iter(graph_t *graph, int total_size)
 			continue;
 		}
 
+		graph->nodes[i]->previous_rank = graph->nodes[i]->rank;
 		graph->nodes[i]->rank = new_ranks[i];
 		total_rank += new_ranks[i];
 	}
@@ -111,17 +113,33 @@ double rank_node(graph_t *graph, int node_id, int total_size)
 	for (i = 0; i < node->incoming_count; i++) {
 		node_t *src_nbr = node->incoming[i];
 
+		if (src_nbr->outgoing_count == 0) {
+			debug(LOW, "ERROR: Source node %d has nonpositive outgoing count.\n", src_nbr->idx);
+			debug(LOW, "Source node:\n");
+			debug_print_node(LOW, *src_nbr);
+			debug(LOW, "Target node:\n");
+			debug_print_node(LOW, *node);
+		}
+
 		outgoing = src_nbr->outgoing_count + src_nbr->outgoing_count_external;
 		double src_outgoing_count =
 				outgoing != 0 ?
 				(double) outgoing :
 				(double) (total_size - 1);
 
-		rank += src_nbr->rank / src_outgoing_count;
+		rank += (src_nbr->rank / src_outgoing_count);
 	}
 
-	rank = (0.15 + (double) total_size * 0.85 * rank) / (double) total_size;
+	rank = (0.15 + ((double) total_size * 0.85 * rank)) / (double) total_size;
 
-	if (rank < 0.0) printf("INSANITY\n");
+	if (total_size == 0) {
+		debug(LOW, "ERROR: Illegal total size: %d\n", total_size);
+	}
+
+	if (rank < 0.0 || rank >= 1.0) {
+		debug(LOW, "ERROR: Illegal rank:\n");
+		debug_print_node(LOW, *node);
+	}
+
 	return rank;
 }
